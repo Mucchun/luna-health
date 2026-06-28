@@ -1,0 +1,6 @@
+node_modules/
+luna.db
+.env
+*.env
+dist/
+.DS_Store
