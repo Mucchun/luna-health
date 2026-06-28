@@ -2,7 +2,6 @@
 
 A beautiful, private women's health app for managing **PCOS**, **Endometriosis**, and **PMDD**. Track your cycle, symptoms, triggers, labs, and medications — and let AI surface patterns you might be missing.
 
-![Dashboard](docs/01-dashboard.png)
 
 ---
 
@@ -11,7 +10,6 @@ A beautiful, private women's health app for managing **PCOS**, **Endometriosis**
 ### 📅 Cycle Tracker
 Tap any day on the calendar to log a period. Luna predicts your next period based on your logged cycles and highlights it automatically.
 
-![Cycle Tracker](docs/02-cycle.png)
 
 ---
 
@@ -22,28 +20,20 @@ Powered by **Groq + Llama 3**. Analyses your symptom logs, period patterns, trig
 - Evidence-based recommendations tailored to your conditions
 - Doctor questions specific to your data
 
-![AI Insights](docs/03-ai.png)
-
 ---
 
 ### 💬 Anonymous Community
 Share questions, experiences, and support with other women — completely anonymously. Inspired by Flo's Secret Chats. Topic-based forum with likes, replies, and delete on your own content.
-
-![Community](docs/04-community.png)
 
 ---
 
 ### 🌿 Wellness Hub
 Condition-specific dietary plans, supplements, lifestyle tips, and meal ideas for PCOS, Endometriosis, and PMDD.
 
-![Wellness](docs/05-wellness.png)
-
 ---
 
 ### ⚙️ Settings & Data Management
 Update your profile, cycle lengths, and conditions. Clear specific data categories or wipe everything and start fresh.
-
-![Settings](docs/06-settings.png)
 
 ---
 
