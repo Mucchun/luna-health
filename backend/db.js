@@ -1,7 +1,17 @@
-const Database = require('better-sqlite3');
 const path = require('path');
 
-const db = new Database(path.join(__dirname, 'luna.db'));
+// When running inside Electron, use the Electron-rebuilt better-sqlite3
+const bsPath = process.env.ELECTRON_NATIVE_MODULES
+  ? path.join(process.env.ELECTRON_NATIVE_MODULES, 'better-sqlite3')
+  : 'better-sqlite3';
+const Database = require(bsPath);
+
+// Persist DB in Electron userData dir; fall back to next to this file
+const dbPath = process.env.LUNA_DATA_DIR
+  ? path.join(process.env.LUNA_DATA_DIR, 'luna.db')
+  : path.join(__dirname, 'luna.db');
+
+const db = new Database(dbPath);
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS user_profile (

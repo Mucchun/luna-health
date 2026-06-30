@@ -1,5 +1,8 @@
-import { BrowserRouter, Routes, Route, NavLink, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { StatusBar, Style } from '@capacitor/status-bar';
+import { SplashScreen } from '@capacitor/splash-screen';
+import { Capacitor } from '@capacitor/core';
 import Dashboard from './pages/Dashboard';
 import LogSymptom from './pages/LogSymptom';
 import CycleTracker from './pages/CycleTracker';
@@ -14,14 +17,18 @@ import Community from './pages/Community';
 import {
   LayoutDashboard, Pill, FlaskConical, TrendingUp,
   CalendarDays, Zap, FileText, Settings as SettingsIcon,
-  Plus, Leaf, MessageCircle, X, Sparkles,
+  Plus, Leaf, MessageCircle, Sparkles, Flower2, Sun,
 } from 'lucide-react';
 import AiInsights from './pages/AiInsights';
 import ChatWidget from './components/ChatWidget';
+import Fertility from './pages/Fertility';
+import Menopause from './pages/Menopause';
 
 const NAV = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/cycle', icon: CalendarDays, label: 'Cycle' },
+  { to: '/fertility', icon: Flower2, label: 'Fertility' },
+  { to: '/menopause', icon: Sun, label: 'Menopause' },
   { to: '/patterns', icon: TrendingUp, label: 'Patterns' },
   { to: '/triggers', icon: Zap, label: 'Triggers' },
   { to: '/labs', icon: FlaskConical, label: 'Labs' },
@@ -200,10 +207,9 @@ function Sidebar() {
 }
 
 function MobileBottom() {
-  const loc = useLocation();
-  const mobile5 = [NAV[0], NAV[1], NAV[2], NAV[7], NAV[8]]; // Dashboard, Cycle, Patterns, AI Insights, Community
+  const mobile5 = [NAV[0], NAV[1], NAV[2], NAV[8], NAV[9]]; // Dashboard, Cycle, Fertility, AI Insights, Community
   return (
-    <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30, background: 'var(--sidebar-bg)', borderTop: '1px solid var(--sidebar-border)', display: 'flex' }} className="md:hidden">
+    <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30, background: 'var(--sidebar-bg)', borderTop: '1px solid var(--sidebar-border)', display: 'flex' }} className="md:hidden mobile-bottom-nav">
       {[...mobile5, { to: '/log', icon: Plus, label: 'Log' }].map(({ to, icon: Icon, label }) => (
         <NavLink key={to} to={to} end={to === '/'} style={({ isActive }) => ({
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -227,6 +233,14 @@ export default function App() {
   const [onboarding, setOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      StatusBar.setStyle({ style: Style.Dark });
+      StatusBar.setBackgroundColor({ color: '#1A0810' });
+      SplashScreen.hide({ fadeOutDuration: 300 });
+    }
+  }, []);
+
+  useEffect(() => {
     fetch('/api/profile')
       .then(r => r.json())
       .then(p => {
@@ -244,6 +258,8 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/log" element={<LogSymptom />} />
             <Route path="/cycle" element={<CycleTracker />} />
+            <Route path="/fertility" element={<Fertility />} />
+            <Route path="/menopause" element={<Menopause />} />
             <Route path="/patterns" element={<Patterns />} />
             <Route path="/triggers" element={<Triggers />} />
             <Route path="/labs" element={<Labs />} />

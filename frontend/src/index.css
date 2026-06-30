@@ -50,9 +50,34 @@ body {
   font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  /* iOS safe area support */
+  padding-top: env(safe-area-inset-top);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  /* Prevent iOS rubber-band overscroll on body */
+  overscroll-behavior: none;
+  /* Better text rendering on iOS */
+  -webkit-text-size-adjust: 100%;
 }
 
-#root { min-height: 100vh; }
+/* iOS tap highlight removal */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Active state feedback for buttons (iOS doesn't have hover) */
+button:active { opacity: 0.75; }
+a:active      { opacity: 0.75; }
+
+#root { min-height: 100vh; min-height: 100dvh; }
+
+/* Bottom nav needs safe area padding on devices with home indicator */
+.mobile-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Page content should account for bottom nav + home indicator */
+.page-content-mobile {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 
 interface Msg { role: 'user' | 'assistant'; content: string; }
 
@@ -9,6 +9,80 @@ const SUGGESTIONS = [
   'How can I reduce bloating?',
   'What does my symptom pattern mean?',
 ];
+
+function Star({ x, y, size, cls }: { x: number; y: number; size: number; cls: string }) {
+  const t = size * 0.2;
+  return (
+    <polygon
+      className={cls}
+      points={`${x},${y - size} ${x + t},${y - t} ${x + size},${y} ${x + t},${y + t} ${x},${y + size} ${x - t},${y + t} ${x - size},${y} ${x - t},${y - t}`}
+      fill="currentColor"
+      style={{ transformBox: 'fill-box', transformOrigin: 'center' }}
+    />
+  );
+}
+
+function LunaFace({ talking = false, open = false }: { talking?: boolean; open?: boolean }) {
+  return (
+    <svg width="62" height="72" viewBox="0 0 62 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+      {/* Ground shadow */}
+      <ellipse cx="31" cy="70" rx="15" ry="3" fill="rgba(200,63,110,0.15)" />
+
+      {/* Moon hair piece */}
+      <path d="M31 2 C22 4 17 13 22 19 C26 14 36 14 40 19 C45 13 40 4 31 2Z" fill="#F4B8CC" />
+      <circle cx="31" cy="10" r="4" fill="#FDE8F0" opacity="0.8" />
+      <circle cx="26" cy="7" r="1.5" fill="white" opacity="0.6" />
+
+      {/* Face base */}
+      <circle cx="31" cy="38" r="24" fill="#FDE8F0" stroke="#F4B8CC" strokeWidth="1.5" />
+
+      {/* Face inner highlight */}
+      <ellipse cx="23" cy="29" rx="8" ry="6" fill="white" opacity="0.22" transform="rotate(-20 23 29)" />
+
+      {/* Rosy cheeks */}
+      <circle cx="15" cy="41" r="7" fill="#FFAEC8" opacity="0.42" />
+      <circle cx="47" cy="41" r="7" fill="#FFAEC8" opacity="0.42" />
+
+      {/* Left eye */}
+      <g className="luna-eye-l">
+        <circle cx="22" cy="35" r="5" fill="#1C0A12" />
+        <circle cx="24" cy="33" r="1.8" fill="white" />
+        <circle cx="21.5" cy="37" r="0.8" fill="white" opacity="0.5" />
+      </g>
+
+      {/* Right eye */}
+      <g className="luna-eye-r">
+        <circle cx="40" cy="35" r="5" fill="#1C0A12" />
+        <circle cx="42" cy="33" r="1.8" fill="white" />
+        <circle cx="39.5" cy="37" r="0.8" fill="white" opacity="0.5" />
+      </g>
+
+      {/* Mouth */}
+      {talking ? (
+        <ellipse cx="31" cy="44.5" rx="5.5" ry="4.5" fill="#C83F6E" className="luna-talk" />
+      ) : open ? (
+        /* slightly open 'o' mouth when chat is open */
+        <ellipse cx="31" cy="44" rx="4" ry="3.5" fill="#C83F6E" opacity="0.9" />
+      ) : (
+        <path d="M 22 43 Q 31 51 40 43" stroke="#C83F6E" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      )}
+
+      {/* Sparkle stars */}
+      <g style={{ color: '#C83F6E' }}>
+        <Star x={5} y={20} size={5} cls="luna-star-1" />
+      </g>
+      <g style={{ color: '#7B52B8' }}>
+        <Star x={55} y={26} size={4} cls="luna-star-2" />
+      </g>
+      <g style={{ color: '#FFAEC8' }}>
+        <Star x={7} y={56} size={3.5} cls="luna-star-3" />
+      </g>
+      <g style={{ color: '#C83F6E' }}>
+        <Star x={54} y={54} size={3} cls="luna-star-4" />
+      </g>
+    </svg>
+  );
+}
 
 export default function ChatWidget() {
   const [open, setOpen]       = useState(false);
@@ -29,8 +103,7 @@ export default function ChatWidget() {
   const send = async (text: string) => {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
-    const userMsg: Msg = { role: 'user', content: trimmed };
-    setMsgs(m => [...m, userMsg]);
+    setMsgs(m => [...m, { role: 'user', content: trimmed }]);
     setInput('');
     setLoading(true);
     try {
@@ -48,27 +121,75 @@ export default function ChatWidget() {
     }
   };
 
+  const hasMessages = msgs.length > 0;
+
   return (
     <>
       <style>{`
-        @keyframes luna-bounce {
-          0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)}
+        /* Float animation */
+        @keyframes luna-float {
+          0%,100%{transform:translateY(0px)}
+          50%{transform:translateY(-9px)}
         }
+        /* Blink */
+        @keyframes luna-blink {
+          0%,87%,100%{transform:scaleY(1)}
+          91%,96%{transform:scaleY(0.05)}
+        }
+        .luna-eye-l {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: luna-blink 4s 0.9s infinite;
+        }
+        .luna-eye-r {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: luna-blink 4s infinite;
+        }
+        /* Sparkle stars */
+        @keyframes luna-sparkle {
+          0%,100%{transform:scale(1) rotate(0deg);opacity:1}
+          50%{transform:scale(0.5) rotate(30deg);opacity:0.25}
+        }
+        .luna-star-1{animation:luna-sparkle 2.4s 0.3s infinite}
+        .luna-star-2{animation:luna-sparkle 2.8s infinite}
+        .luna-star-3{animation:luna-sparkle 2s 1s infinite}
+        .luna-star-4{animation:luna-sparkle 2.2s 0.6s infinite}
+
+        /* Talking mouth */
+        @keyframes luna-talk-anim {
+          0%{transform:scaleY(0.6)}100%{transform:scaleY(1.4)}
+        }
+        .luna-talk {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: luna-talk-anim 0.22s infinite alternate;
+        }
+
+        /* Panel pop in */
         @keyframes luna-pop {
-          0%{opacity:0;transform:scale(0.92) translateY(8px)}
+          0%{opacity:0;transform:scale(0.9) translateY(10px)}
           100%{opacity:1;transform:scale(1) translateY(0)}
         }
-        .chat-btn  { bottom: 88px; right: 16px; }
-        .chat-panel{ bottom: 152px; right: 16px; }
+
+        /* Chat typing dots */
+        @keyframes luna-bounce {
+          0%,60%,100%{transform:translateY(0)}
+          30%{transform:translateY(-6px)}
+        }
+
+        /* Positions */
+        .luna-btn   { bottom: 82px; right: 16px; }
+        .luna-panel { bottom: 156px; right: 16px; }
         @media(min-width:768px){
-          .chat-btn  { bottom: 24px; right: 24px; }
-          .chat-panel{ bottom: 88px; right: 24px; }
+          .luna-btn   { bottom: 20px; right: 24px; }
+          .luna-panel { bottom: 100px; right: 24px; }
         }
       `}</style>
 
-      {/* Panel */}
+      {/* ── Chat panel ── */}
       {open && (
-        <div className="chat-panel" style={{
+        <div className="luna-panel" style={{
           position: 'fixed', zIndex: 200,
           width: 360, maxWidth: 'calc(100vw - 32px)',
           height: 520, maxHeight: 'calc(100dvh - 180px)',
@@ -78,14 +199,27 @@ export default function ChatWidget() {
           display: 'flex', flexDirection: 'column', overflow: 'hidden',
           animation: 'luna-pop 0.18s ease-out',
         }}>
-          {/* Header */}
-          <div style={{ background: 'var(--sidebar-bg)', padding: '13px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 11, background: 'linear-gradient(135deg, #C83F6E 0%, #7B52B8 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <Sparkles size={15} color="#fff" />
+          {/* Panel header */}
+          <div style={{ background: 'var(--sidebar-bg)', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+            {/* Mini character in header */}
+            <div style={{ width: 36, height: 36, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="34" height="34" viewBox="0 0 62 72" fill="none">
+                <circle cx="31" cy="38" r="24" fill="#FDE8F0" stroke="#F4B8CC" strokeWidth="1.5" />
+                <path d="M31 2 C22 4 17 13 22 19 C26 14 36 14 40 19 C45 13 40 4 31 2Z" fill="#F4B8CC" />
+                <circle cx="15" cy="41" r="7" fill="#FFAEC8" opacity="0.42" />
+                <circle cx="47" cy="41" r="7" fill="#FFAEC8" opacity="0.42" />
+                <circle cx="22" cy="35" r="5" fill="#1C0A12" />
+                <circle cx="24" cy="33" r="1.8" fill="white" />
+                <circle cx="40" cy="35" r="5" fill="#1C0A12" />
+                <circle cx="42" cy="33" r="1.8" fill="white" />
+                <ellipse cx="31" cy="44" rx="4" ry="3.5" fill="#C83F6E" opacity="0.9" />
+              </svg>
             </div>
             <div style={{ flex: 1 }}>
               <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1 }}>Luna AI</p>
-              <p style={{ fontSize: 10, color: 'var(--sidebar-muted)', marginTop: 1 }}>Powered by Groq · Llama 3</p>
+              <p style={{ fontSize: 10, color: 'var(--sidebar-muted)', marginTop: 1 }}>
+                {loading ? 'typing…' : 'Your health assistant'}
+              </p>
             </div>
             <button onClick={() => setOpen(false)} style={{ border: 'none', background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: '5px 6px', cursor: 'pointer', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center' }}>
               <X size={14} />
@@ -94,22 +228,19 @@ export default function ChatWidget() {
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '14px 12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
-
-            {/* Welcome + suggestions */}
             {msgs.length === 0 && (
               <>
                 <div style={{ background: 'var(--accent-light)', borderRadius: '16px 16px 16px 4px', padding: '11px 13px', maxWidth: '88%', alignSelf: 'flex-start' }}>
                   <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.55 }}>
-                    Hi! I'm Luna ✦ I can see your health data and help with questions about your symptoms, cycle, triggers, and conditions. What's on your mind?
+                    Hi, I'm Luna ✦ I can see your health data and help with questions about your symptoms, cycle, triggers, and conditions. What's on your mind?
                   </p>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
                   {SUGGESTIONS.map(s => (
                     <button key={s} onClick={() => send(s)}
-                      style={{ textAlign: 'left', padding: '9px 12px', borderRadius: 11, border: '1px solid var(--border)', background: '#fff', fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', transition: 'background 0.1s' }}
                       onMouseEnter={e => (e.currentTarget.style.background = 'var(--accent-light)')}
                       onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
-                    >
+                      style={{ textAlign: 'left', padding: '9px 12px', borderRadius: 11, border: '1px solid var(--border)', background: '#fff', fontSize: 12, color: 'var(--text-2)', cursor: 'pointer', transition: 'background 0.1s' }}>
                       {s}
                     </button>
                   ))}
@@ -117,7 +248,6 @@ export default function ChatWidget() {
               </>
             )}
 
-            {/* Message history */}
             {msgs.map((m, i) => (
               <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
                 <div style={{
@@ -132,58 +262,75 @@ export default function ChatWidget() {
               </div>
             ))}
 
-            {/* Typing indicator */}
             {loading && (
               <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <div style={{ padding: '12px 16px', borderRadius: '16px 16px 16px 4px', background: 'var(--bg)', display: 'flex', gap: 5, alignItems: 'center' }}>
-                  {[0, 1, 2].map(i => (
+                  {[0,1,2].map(i => (
                     <div key={i} style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--accent)', animation: `luna-bounce 1.1s ${i * 0.18}s infinite` }} />
                   ))}
                 </div>
               </div>
             )}
-
             <div ref={bottomRef} />
           </div>
 
-          {/* Input bar */}
+          {/* Input */}
           <div style={{ padding: '10px 12px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
-              placeholder="Ask me anything…"
+              placeholder="Ask Luna anything…"
               disabled={loading}
               style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 12, padding: '9px 12px', fontSize: 13, color: 'var(--text)', background: '#fff', fontFamily: 'inherit', outline: 'none' }}
             />
-            <button
-              onClick={() => send(input)}
-              disabled={!input.trim() || loading}
-              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'not-allowed', background: input.trim() && !loading ? 'var(--accent)' : 'var(--border)', color: input.trim() && !loading ? '#fff' : 'var(--text-3)', transition: 'all 0.1s' }}
-            >
+            <button onClick={() => send(input)} disabled={!input.trim() || loading}
+              style={{ width: 36, height: 36, borderRadius: 10, border: 'none', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: input.trim() && !loading ? 'pointer' : 'not-allowed', background: input.trim() && !loading ? 'var(--accent)' : 'var(--border)', color: input.trim() && !loading ? '#fff' : 'var(--text-3)', transition: 'all 0.1s' }}>
               <Send size={14} />
             </button>
           </div>
         </div>
       )}
 
-      {/* Floating button */}
+      {/* ── Floating character button ── */}
       <button
-        className="chat-btn"
+        className="luna-btn"
         onClick={() => setOpen(o => !o)}
+        aria-label={open ? 'Close Luna chat' : 'Chat with Luna AI'}
         style={{
           position: 'fixed', zIndex: 201,
-          width: 54, height: 54, borderRadius: '50%', border: 'none',
-          background: open ? '#1A0810' : 'var(--accent)',
-          color: '#fff', cursor: 'pointer',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: open ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 24px rgba(200,63,110,0.45)',
-          transition: 'all 0.2s',
+          background: 'none', border: 'none', padding: 0,
+          cursor: 'pointer',
+          animation: 'luna-float 3.2s ease-in-out infinite',
+          filter: 'drop-shadow(0 6px 18px rgba(200,63,110,0.38))',
+          transition: 'filter 0.2s',
         }}
-        title={open ? 'Close chat' : 'Chat with Luna AI'}
+        onMouseEnter={e => (e.currentTarget.style.filter = 'drop-shadow(0 8px 22px rgba(200,63,110,0.55))')}
+        onMouseLeave={e => (e.currentTarget.style.filter = 'drop-shadow(0 6px 18px rgba(200,63,110,0.38))')}
       >
-        {open ? <X size={20} /> : <MessageCircle size={20} />}
+        <LunaFace talking={loading && !open} open={open} />
+
+        {/* X badge when open */}
+        {open && (
+          <div style={{
+            position: 'absolute', top: 8, right: -2,
+            width: 20, height: 20, borderRadius: '50%',
+            background: '#1A0810', border: '2px solid var(--accent-light)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <X size={10} color="#FFAEC8" />
+          </div>
+        )}
+
+        {/* Unread dot when chat has messages and is closed */}
+        {!open && hasMessages && (
+          <div style={{
+            position: 'absolute', top: 12, right: 0,
+            width: 11, height: 11, borderRadius: '50%',
+            background: 'var(--accent)', border: '2px solid white',
+          }} />
+        )}
       </button>
     </>
   );

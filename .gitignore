@@ -4,3 +4,8 @@ luna.db
 *.env
 dist/
 .DS_Store
+electron/dist/
+electron/staged-backend/
+electron/staged-frontend/
+frontend/ios_icons/
+

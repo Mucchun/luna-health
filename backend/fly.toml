@@ -1,0 +1,31 @@
+app = "luna-health-api"
+primary_region = "lhr"
+
+[build]
+
+[env]
+  PORT = "3001"
+  LUNA_DATA_DIR = "/data"
+
+[mounts]
+  source = "luna_data"
+  destination = "/data"
+
+[[services]]
+  internal_port = 3001
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/profile"

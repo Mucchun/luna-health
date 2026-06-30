@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 const db = require('./db');
 const Groq = require('groq-sdk');
 
@@ -571,6 +573,227 @@ Your style:
   }
 });
 
+// ── AI Fertility Insights ─────────────────────────────────────────────────────
+app.post('/api/ai/fertility', async (req, res) => {
+  if (!process.env.GROQ_API_KEY) return res.status(503).json({ error: 'GROQ_API_KEY not set.' });
+
+  const profile  = db.prepare('SELECT * FROM user_profile WHERE id=1').get();
+  const cycles   = db.prepare('SELECT * FROM cycles ORDER BY start_date DESC LIMIT 12').all();
+  const labs     = db.prepare(`SELECT * FROM lab_values WHERE marker IN ('AMH','FSH','LH','Estradiol (E2)','Progesterone','Testosterone (total)','Fasting insulin','DHEA-S') ORDER BY date DESC LIMIT 16`).all();
+  const symptoms = db.prepare(`SELECT symptom, severity, date FROM symptoms ORDER BY date DESC LIMIT 30`).all();
+  const meds     = db.prepare(`SELECT name, type FROM medications WHERE active=1`).all();
+
+  const conditions = JSON.parse(profile?.conditions || '[]');
+
+  // Cycle regularity stats
+  const cycleLengths = [];
+  for (let i = 0; i < cycles.length - 1; i++) {
+    const d = Math.round((new Date(cycles[i].start_date).getTime() - new Date(cycles[i+1].start_date).getTime()) / 86400000);
+    if (d > 10 && d < 90) cycleLengths.push(d);
+  }
+  const avgCycle = cycleLengths.length ? Math.round(cycleLengths.reduce((a,b) => a+b,0)/cycleLengths.length) : (profile.cycle_length || 28);
+  const variation = cycleLengths.length > 1 ? Math.max(...cycleLengths) - Math.min(...cycleLengths) : null;
+
+  const data = {
+    conditions,
+    cycles_logged: cycles.length,
+    avg_cycle_length: avgCycle,
+    cycle_variation_days: variation,
+    cycle_regularity: variation == null ? 'unknown' : variation <= 3 ? 'regular' : variation <= 7 ? 'slightly_irregular' : 'irregular',
+    profile_cycle_length: profile.cycle_length,
+    profile_period_length: profile.period_length,
+    last_period: cycles[0]?.start_date || null,
+    relevant_labs: labs.map(l => ({ marker: l.marker, value: l.value, unit: l.unit, date: l.date })),
+    active_medications: meds.map(m => m.name),
+    recent_symptoms: symptoms.slice(0,15).map(s => `${s.symptom} (${s.severity}/10)`),
+  };
+
+  const systemPrompt = `You are a compassionate women's reproductive health assistant in Luna Health, an app for women managing PCOS, Endometriosis, and PMDD. You provide evidence-based fertility insights. Always remind users to consult their healthcare provider or a fertility specialist for medical decisions. Never make guarantees about conception outcomes.`;
+
+  const userPrompt = `Provide personalised fertility insights for this woman based on her health data.
+
+${JSON.stringify(data, null, 2)}
+
+Return ONLY a JSON object:
+{
+  "summary": "2-3 warm, personalised sentences about her fertility picture based on her data",
+  "cycle_assessment": "one sentence about cycle regularity and what it means for predicting ovulation",
+  "condition_impacts": [
+    { "condition": "PCOS/Endometriosis/PMDD", "impact": "specific impact on fertility", "positive_note": "something encouraging or actionable" }
+  ],
+  "conception_tips": ["specific tip 1", "specific tip 2", "specific tip 3", "tip 4", "tip 5"] (evidence-based, personalised to her conditions),
+  "lab_fertility_notes": "observations about any fertility-relevant lab values logged, or null if none",
+  "lifestyle_factors": ["factor 1", "factor 2", "factor 3"] (from her triggers/symptoms/meds that affect fertility),
+  "doctor_questions": ["question 1", "question 2", "question 3"] (specific to her data — about fertility/conception),
+  "tracking_suggestions": ["suggestion 1", "suggestion 2"] (what she should track to improve predictions)
+}`;
+
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+      max_tokens: 1400,
+      temperature: 0.4,
+    });
+    const raw = completion.choices[0]?.message?.content?.trim() || '';
+    const jsonStr = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+    const analysis = JSON.parse(jsonStr);
+    res.json({ analysis, data_summary: { avg_cycle: avgCycle, variation, cycles_logged: cycles.length }, generated_at: new Date().toISOString() });
+  } catch(err) {
+    console.error('Fertility AI error:', err.message);
+    res.status(500).json({ error: 'Analysis failed.' });
+  }
+});
+
+// ── AI Lab Analysis ───────────────────────────────────────────────────────────
+app.post('/api/ai/analyze-labs', async (req, res) => {
+  if (!process.env.GROQ_API_KEY) return res.status(503).json({ error: 'GROQ_API_KEY not set.' });
+
+  const profile = db.prepare('SELECT * FROM user_profile WHERE id=1').get();
+  const labs    = db.prepare('SELECT * FROM lab_values ORDER BY marker ASC, date DESC').all();
+
+  if (labs.length === 0) return res.status(400).json({ error: 'No lab results logged yet.' });
+
+  const conditions = JSON.parse(profile?.conditions || '[]');
+
+  // Group by marker, include all readings for trend
+  const grouped = {};
+  for (const l of labs) {
+    if (!grouped[l.marker]) grouped[l.marker] = [];
+    grouped[l.marker].push({ value: l.value, unit: l.unit, date: l.date, notes: l.notes || undefined });
+  }
+
+  const systemPrompt = `You are a women's health lab analyst in Luna Health, an app for women managing PCOS, Endometriosis, and PMDD.
+Analyse lab results against standard reference ranges. Be specific, reference actual values, and note trends when multiple readings exist.
+Be warm and informative. Always remind the user to discuss results with their healthcare provider. Never diagnose.`;
+
+  const userPrompt = `Analyse these lab results for a woman with: ${conditions.join(', ') || 'unspecified conditions'}.
+
+Lab results (all readings per marker, newest first):
+${JSON.stringify(grouped, null, 2)}
+
+Known reference ranges for context:
+- Testosterone (total): 15–70 ng/dL (elevated in PCOS)
+- LH: 2–15 mIU/mL (LH:FSH ratio >2 suggests PCOS)
+- FSH: 3–10 mIU/mL
+- AMH: 1–3.5 ng/mL (elevated >3.5 in PCOS)
+- Fasting insulin: 2–25 μIU/mL
+- Fasting glucose: 70–99 mg/dL
+- Estradiol (E2): 30–400 pg/mL (phase-dependent)
+- Progesterone: 0.1–25 ng/mL (phase-dependent)
+- CA-125: 0–35 U/mL (often elevated in endometriosis)
+- CRP: 0–3 mg/L
+- Ferritin: 12–150 ng/mL
+- Vitamin D: 30–100 ng/mL
+- TSH: 0.4–4.5 mIU/L
+- DHEA-S: 35–430 μg/dL
+
+Return ONLY a JSON object with this exact structure:
+{
+  "summary": "2-3 sentence personalised overview referencing specific values you see",
+  "markers": [
+    {
+      "name": "exact marker name as given",
+      "latest_value": 0,
+      "unit": "unit string",
+      "status": "normal" | "high" | "low" | "borderline_high" | "borderline_low" | "unknown",
+      "trend": "rising" | "falling" | "stable" | "single_reading",
+      "observation": "one concise sentence about this specific value and what it means for their conditions"
+    }
+  ],
+  "key_findings": ["finding 1", "finding 2", "finding 3"],
+  "doctor_questions": ["question 1", "question 2", "question 3", "question 4"],
+  "follow_up_tests": ["test name 1", "test name 2"]
+}`;
+
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      max_tokens: 1400,
+      temperature: 0.3,
+    });
+    const raw = completion.choices[0]?.message?.content?.trim() || '';
+    const jsonStr = raw.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/i, '').trim();
+    const analysis = JSON.parse(jsonStr);
+    res.json({ analysis, generated_at: new Date().toISOString() });
+  } catch (err) {
+    console.error('Labs AI error:', err.message);
+    res.status(500).json({ error: 'Analysis failed.' });
+  }
+});
+
+// ── AI Menopause Guide ────────────────────────────────────────────────────────
+app.post('/api/ai/menopause', async (req, res) => {
+  if (!process.env.GROQ_API_KEY) return res.status(503).json({ error: 'GROQ_API_KEY not set.' });
+
+  const { stage, symptoms, last_period } = req.body;
+
+  const profile  = db.prepare('SELECT * FROM user_profile WHERE id=1').get();
+  const labs     = db.prepare(`SELECT * FROM lab_values WHERE marker IN ('FSH','Estradiol (E2)','Progesterone','AMH','LH','Testosterone (total)','TSH') ORDER BY date DESC LIMIT 14`).all();
+  const meds     = db.prepare(`SELECT name, type, notes FROM medications WHERE active=1`).all();
+  const symLogs  = db.prepare(`SELECT symptom, severity, date FROM symptoms ORDER BY date DESC LIMIT 30`).all();
+
+  const conditions = JSON.parse(profile?.conditions || '[]');
+
+  const data = {
+    stage: stage || 'unknown',
+    reported_symptoms: symptoms || [],
+    last_period_date: last_period || null,
+    conditions,
+    active_medications: meds.map(m => ({ name: m.name, type: m.type })),
+    relevant_labs: labs.map(l => ({ marker: l.marker, value: l.value, unit: l.unit, date: l.date })),
+    recent_logged_symptoms: symLogs.slice(0,12).map(s => `${s.symptom} (${s.severity}/10)`),
+  };
+
+  const systemPrompt = `You are a compassionate women's menopause health specialist in Luna Health. Provide evidence-based, empathetic guidance about menopause stages and management. Always encourage consultation with a gynaecologist, menopause specialist, or GP for medical decisions. Never diagnose. Acknowledge that menopause is a natural life stage.`;
+
+  const userPrompt = `Provide a personalised menopause guide for this woman based on her data.
+
+${JSON.stringify(data, null, 2)}
+
+Return ONLY a JSON object with these keys:
+{
+  "summary": "2-3 warm sentences acknowledging her stage/symptoms and giving an empowering overview",
+  "stage_insight": "Specific explanation of her reported stage (or most likely stage if unknown) — what's happening hormonally, typical duration, what to expect",
+  "symptom_insights": [
+    { "symptom": "symptom name", "why_it_happens": "brief hormonal/physiological explanation", "management_tip": "specific actionable tip" }
+  ] (cover each reported symptom; max 6),
+  "lifestyle_pillars": [
+    { "category": "Nutrition/Movement/Sleep/Stress/etc", "tip": "specific recommendation for menopause", "why": "brief reason" }
+  ] (4-5 pillars personalised to her conditions),
+  "medical_options": [
+    { "name": "option name (HRT, non-hormonal meds, supplements)", "description": "what it does", "suits_who": "who it's best for", "flag": "discuss with doctor/no known issues/caution if X" }
+  ] (3-4 options relevant to her stage/symptoms),
+  "condition_interactions": "how her specific conditions (PCOS/Endo/PMDD) may interact with menopause transition, or null if no conditions",
+  "lab_notes": "interpretation of any relevant lab values logged, especially FSH/E2 which confirm menopause, or null if no relevant labs",
+  "doctor_questions": ["question 1", "question 2", "question 3", "question 4"] (specific to her data),
+  "what_to_track": ["tracking suggestion 1", "tracking suggestion 2", "tracking suggestion 3"]
+}`;
+
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+      max_tokens: 1800,
+      temperature: 0.35,
+    });
+    const raw = completion.choices[0]?.message?.content?.trim() || '';
+    const jsonStr = raw.replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/```\s*$/i,'').trim();
+    const analysis = JSON.parse(jsonStr);
+    res.json({ analysis, generated_at: new Date().toISOString() });
+  } catch (err) {
+    console.error('Menopause AI error:', err.message);
+    res.status(500).json({ error: 'Analysis failed.' });
+  }
+});
+
 // ── Profile — handle missing profile gracefully ───────────────────────────────
 app.get('/api/profile', (req, res) => {
   let p = db.prepare('SELECT * FROM user_profile WHERE id = 1').get();
@@ -581,5 +804,18 @@ app.get('/api/profile', (req, res) => {
   res.json({ ...p, conditions: JSON.parse(p.conditions) });
 });
 
-const PORT = 3001;
+// Serve built frontend when running inside Electron desktop app
+const staticDir = process.env.LUNA_STATIC_DIR
+  ? process.env.LUNA_STATIC_DIR
+  : path.join(__dirname, '../frontend/dist');
+
+if (fs.existsSync(staticDir)) {
+  app.use(express.static(staticDir));
+  app.get('*path', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(staticDir, 'index.html'));
+  });
+}
+
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001;
 app.listen(PORT, () => console.log(`Luna API running on http://localhost:${PORT}`));

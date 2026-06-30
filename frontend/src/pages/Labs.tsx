@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Plus, X, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Plus, X, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 
 const MARKERS = [
@@ -39,13 +39,43 @@ const TT = ({ active, payload, label }: any) => {
   );
 };
 
+const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
+  normal:           { bg: '#D1F5E4', color: '#2D7A56', label: 'Normal' },
+  high:             { bg: '#FCE7EF', color: '#C83F6E', label: 'High' },
+  low:              { bg: '#DBEAFE', color: '#2563EB', label: 'Low' },
+  borderline_high:  { bg: '#FEF3C7', color: '#D97706', label: 'Borderline high' },
+  borderline_low:   { bg: '#FEF3C7', color: '#D97706', label: 'Borderline low' },
+  unknown:          { bg: 'var(--border)', color: 'var(--text-3)', label: 'No range' },
+};
+const TREND_ICON: Record<string, any> = {
+  rising: TrendingUp, falling: TrendingDown, stable: Minus, single_reading: Minus,
+};
+
 export default function Labs() {
   const [labs, setLabs] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], marker: '', value: '', unit: '', lab: '', notes: '' });
   const [chartMarker, setChartMarker] = useState<string | null>(null);
+  const [aiResult, setAiResult]   = useState<any>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError]     = useState<string | null>(null);
 
   useEffect(() => { fetch('/api/labs').then(r => r.json()).then(setLabs); }, []);
+
+  const analyzeWithAi = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch('/api/ai/analyze-labs', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) { setAiError(data.error || 'Analysis failed.'); return; }
+      setAiResult(data);
+    } catch {
+      setAiError('Could not reach the server.');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,6 +115,125 @@ export default function Labs() {
         </button>
       </div>
 
+      {/* AI Analysis panel */}
+      <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden', marginBottom: 14 }}>
+        <div style={{ padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: aiResult ? '1px solid var(--border)' : 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg, var(--accent-light), var(--purple-light))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={13} style={{ color: 'var(--accent)' }} />
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>AI Lab Analysis</p>
+              {aiResult && <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>
+                {new Date(aiResult.generated_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+              </p>}
+            </div>
+          </div>
+          <button onClick={analyzeWithAi} disabled={aiLoading || labs.length === 0}
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 99, border: 'none', background: aiLoading || labs.length === 0 ? 'var(--border)' : 'var(--accent)', color: aiLoading || labs.length === 0 ? 'var(--text-3)' : '#fff', fontSize: 12, fontWeight: 600, cursor: aiLoading || labs.length === 0 ? 'not-allowed' : 'pointer', transition: 'all 0.1s' }}>
+            {aiLoading
+              ? <><RefreshCw size={11} style={{ animation: 'spin 1s linear infinite' }} /> Analysing…</>
+              : <><Sparkles size={11} /> {aiResult ? 'Re-analyse' : 'Analyse results'}</>}
+          </button>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
+
+        {aiError && (
+          <div style={{ padding: '12px 20px', fontSize: 13, color: 'var(--amber)' }}>{aiError}</div>
+        )}
+
+        {aiResult && !aiLoading && (() => {
+          const a = aiResult.analysis;
+          return (
+            <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Summary */}
+              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.summary}</p>
+
+              {/* Marker chips */}
+              {a.markers?.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Marker Status</p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                    {a.markers.map((m: any) => {
+                      const st = STATUS_STYLE[m.status] || STATUS_STYLE.unknown;
+                      const TIcon = TREND_ICON[m.trend] || Minus;
+                      return (
+                        <div key={m.name} title={m.observation}
+                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 99, background: st.bg, fontSize: 11, fontWeight: 600, color: st.color, cursor: 'default' }}>
+                          <TIcon size={10} />
+                          {m.name.split('(')[0].trim()} · {st.label}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Marker observations */}
+              {a.markers?.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {a.markers.map((m: any) => {
+                    const st = STATUS_STYLE[m.status] || STATUS_STYLE.unknown;
+                    return (
+                      <div key={m.name} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 12px', background: st.bg + '55', borderRadius: 10, border: `1px solid ${st.bg}` }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: st.color, flexShrink: 0, paddingTop: 1, minWidth: 36 }}>{m.latest_value} {m.unit}</div>
+                        <div>
+                          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)' }}>{m.name}</p>
+                          <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 2, lineHeight: 1.5 }}>{m.observation}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Key findings */}
+              {a.key_findings?.length > 0 && (
+                <div>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Key Findings</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {a.key_findings.map((f: string, i: number) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <ChevronRight size={13} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} />
+                        <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.55 }}>{f}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Doctor questions + follow-up tests */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                {a.doctor_questions?.length > 0 && (
+                  <div style={{ background: '#DBEAFE22', border: '1px solid #DBEAFE', borderRadius: 12, padding: '12px 14px' }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Ask your doctor</p>
+                    <ol style={{ paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                      {a.doctor_questions.map((q: string, i: number) => (
+                        <li key={i} style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {a.follow_up_tests?.length > 0 && (
+                  <div style={{ background: 'var(--purple-light)', border: '1px solid #DDD6FE', borderRadius: 12, padding: '12px 14px' }}>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Consider testing</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {a.follow_up_tests.map((t: string, i: number) => (
+                        <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 99, background: 'white', color: 'var(--purple)' }}>{t}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <p style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.5, fontStyle: 'italic' }}>
+                AI analysis is for informational purposes only. Always discuss your lab results with a qualified healthcare provider.
+              </p>
+            </div>
+          );
+        })()}
+      </div>
+
       {/* Trend chart */}
       {chartMarker && chartData.length > 1 && (
         <div style={{ ...card, padding: '20px 22px', marginBottom: 14 }}>
@@ -93,7 +242,7 @@ export default function Labs() {
               <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{chartMarker}</p>
               {markerDef && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Normal: {markerDef.min}–{markerDef.max} {markerDef.unit}</p>}
             </div>
-            <button onClick={() => setChartMarker(null)} style={{ fontSize: 11, color: 'var(--text-3)', border: 'none', background: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, background: 'var(--border)' }}>
+            <button onClick={() => setChartMarker(null)} style={{ fontSize: 11, color: 'var(--text-3)', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, background: 'var(--border)' }}>
               Close
             </button>
           </div>

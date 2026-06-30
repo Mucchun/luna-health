@@ -1,0 +1,44 @@
+{
+  "name": "luna-health-desktop",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "postinstall": "electron-rebuild",
+    "stage": "rsync -a --delete --exclude=node_modules ../backend/ staged-backend/ && rsync -a --delete ../frontend/dist/ staged-frontend/",
+    "build:web": "cd ../frontend && npm run build",
+    "pack": "npm run build:web && npm run stage && electron-builder --mac --dir",
+    "dist": "npm run build:web && npm run stage && electron-builder --mac"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "groq-sdk": "^1.3.0"
+  },
+  "devDependencies": {
+    "@electron/rebuild": "^3.7.1",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.lunahealth.app",
+    "productName": "Luna Health",
+    "copyright": "Luna Health",
+    "directories": { "output": "dist" },
+    "asar": false,
+    "mac": {
+      "icon": "icon.icns",
+      "category": "public.app-category.healthcare-fitness",
+      "darkModeSupport": true,
+      "target": [{ "target": "dir", "arch": ["arm64"] }]
+    },
+    "files": [
+      "main.js",
+      "icon.png",
+      "node_modules/**",
+      "staged-backend/**",
+      "staged-frontend/**"
+    ]
+  }
+}
