@@ -33,6 +33,7 @@ export const fr: Record<keyof typeof en, string> = {
   'common.close': 'Fermer',
   'common.done': 'Terminé',
   'common.loading': 'Chargement…',
+  'common.retry': "Réessayer",
   'common.days': 'jours',
   'common.optional': 'facultatif',
   'common.noDataYet': 'Aucune donnée',

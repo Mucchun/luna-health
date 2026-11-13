@@ -33,6 +33,7 @@ export const es: Record<keyof typeof en, string> = {
   'common.close': 'Cerrar',
   'common.done': 'Hecho',
   'common.loading': 'Cargando…',
+  'common.retry': "Reintentar",
   'common.days': 'días',
   'common.optional': 'opcional',
   'common.noDataYet': 'Aún no hay datos',

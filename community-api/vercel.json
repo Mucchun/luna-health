@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/api/community/:path*", "destination": "/api/community?p=:path*" }
+  ],
+  "headers": [
+    { "source": "/admin.html", "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }, { "key": "Cache-Control", "value": "no-store" }] }
+  ]
+}

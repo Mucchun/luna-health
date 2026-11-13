@@ -305,7 +305,9 @@ export default function ChatWidget() {
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Close Luna chat' : 'Chat with Luna AI'}
         style={{
-          position: 'fixed', zIndex: 201,
+          // Closed: sits above the tab bar but below page dialogs, so it never
+          // covers a form's buttons. Open: above its own chat panel.
+          position: 'fixed', zIndex: open ? 201 : 40,
           background: 'none', border: 'none', padding: 0,
           cursor: 'pointer',
           animation: 'luna-float 3.2s ease-in-out infinite',

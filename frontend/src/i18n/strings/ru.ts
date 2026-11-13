@@ -33,6 +33,7 @@ export const ru: Record<keyof typeof en, string> = {
   'common.close': 'Закрыть',
   'common.done': 'Готово',
   'common.loading': 'Загрузка…',
+  'common.retry': "Повторить",
   'common.days': 'дней',
   'common.optional': 'необязательно',
   'common.noDataYet': 'Пока нет данных',

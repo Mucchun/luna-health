@@ -36,6 +36,7 @@ export const en = {
   'common.close': 'Close',
   'common.done': 'Done',
   'common.loading': 'Loading…',
+  'common.retry': "Try again",
   'common.days': 'days',
   'common.optional': 'optional',
   'common.noDataYet': 'No data yet',

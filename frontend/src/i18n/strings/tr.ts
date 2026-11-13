@@ -33,6 +33,7 @@ export const tr: Record<keyof typeof en, string> = {
   'common.close': 'Kapat',
   'common.done': 'Tamam',
   'common.loading': 'Yükleniyor…',
+  'common.retry': "Tekrar dene",
   'common.days': 'gün',
   'common.optional': 'isteğe bağlı',
   'common.noDataYet': 'Henüz veri yok',

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Plus, X, ArrowLeft, Heart, MessageCircle, Send, Trash2, Globe, Wifi, Flag, Ban } from 'lucide-react';
-import { capi, isSharedCommunity } from '../lib/community';
+import { capi, capiJson, isSharedCommunity } from '../lib/community';
 import { LegalModal, GUIDELINES_ACCEPTED_KEY } from '../lib/legal';
 import { screenText } from '../lib/moderation';
 import { notifyWarning } from '../lib/haptics';
@@ -19,6 +19,7 @@ interface Post {
   likes: number;
   comment_count: number;
   created_at: string;
+  mine?: boolean;
 }
 interface Comment {
   id: number;
@@ -27,6 +28,7 @@ interface Comment {
   anon_color: string;
   content: string;
   created_at: string;
+  mine?: boolean;
 }
 interface PostDetail extends Post { comments: Comment[] }
 interface Identity { name: string; color: string }
@@ -113,6 +115,12 @@ export default function Community() {
 
   const flash = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200); };
   const isBlocked = (name: string, color: string) => blocked.has(identKey(name, color));
+  // On the shared server, `mine` says whether this install wrote the item (two
+  // people can end up with the same made-up name). Local mode has no `mine`.
+  const isMine = (x: { anon_name: string; anon_color: string; mine?: boolean }) =>
+    x.mine ?? !!(identity && x.anon_name === identity.name && x.anon_color === identity.color);
+  const [loadError, setLoadError] = useState('');
+  const [loaded, setLoaded] = useState(false);
 
   const reportContent = async (kind: 'posts' | 'comments', id: number) => {
     if (!window.confirm('Report this content as inappropriate? It will be hidden from you and sent to our moderators for review.')) return;
@@ -145,7 +153,14 @@ export default function Community() {
 
   const fetchPosts = useCallback(async (t = topic) => {
     const url = t === 'All' ? '/api/community/posts' : `/api/community/posts?category=${encodeURIComponent(t)}`;
-    setPosts(await capi(url).then(r => r.json()));
+    try {
+      setPosts(await capiJson<Post[]>(url));
+      setLoadError('');
+    } catch (e) {
+      setLoadError((e as Error).message);
+    } finally {
+      setLoaded(true);
+    }
   }, [topic]);
 
   useEffect(() => { fetchPosts(); }, [topic, fetchPosts]);
@@ -154,7 +169,7 @@ export default function Community() {
   useEffect(() => {
     const iv = setInterval(() => {
       if (detail) {
-        capi(`/api/community/posts/${detail.id}`).then(r => r.json()).then(d => { if (d?.id) setDetail(d); }).catch(() => {});
+        capiJson<PostDetail>(`/api/community/posts/${detail.id}`).then(d => { if (d?.id) setDetail(d); }).catch(() => {});
       } else {
         fetchPosts().catch(() => {});
       }
@@ -163,7 +178,8 @@ export default function Community() {
   }, [detail, fetchPosts]);
 
   const openPost = async (id: number) => {
-    setDetail(await capi(`/api/community/posts/${id}`).then(r => r.json()));
+    try { setDetail(await capiJson<PostDetail>(`/api/community/posts/${id}`)); }
+    catch (e) { flash((e as Error).message); }
   };
 
   const createPost = async () => {
@@ -171,11 +187,16 @@ export default function Community() {
     const bad = screenText(newForm.title) || screenText(newForm.content);
     if (bad) { notifyWarning(); flash(bad + ' Please revise before posting.'); return; }
     setNewPosting(true);
-    await capi('/api/community/posts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...newForm, anon_name: identity.name, anon_color: identity.color }),
-    });
+    try {
+      await capiJson('/api/community/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...newForm, anon_name: identity.name, anon_color: identity.color }),
+      });
+    } catch (e) {
+      // Keep the draft open so nothing the user wrote is lost.
+      setNewPosting(false); notifyWarning(); flash((e as Error).message); return;
+    }
     setNewPosting(false);
     setShowNew(false);
     setNewForm({ category: '', title: '', content: '' });
@@ -189,25 +210,30 @@ export default function Community() {
     const bad = screenText(commentText);
     if (bad) { notifyWarning(); flash(bad + ' Please revise before posting.'); return; }
     setCommenting(true);
-    await capi(`/api/community/posts/${detail.id}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ anon_name: identity.name, anon_color: identity.color, content: commentText.trim() }),
-    });
-    setCommentText('');
-    setDetail(await capi(`/api/community/posts/${detail.id}`).then(r => r.json()));
+    try {
+      await capiJson(`/api/community/posts/${detail.id}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anon_name: identity.name, anon_color: identity.color, content: commentText.trim() }),
+      });
+      setCommentText('');
+      setDetail(await capiJson<PostDetail>(`/api/community/posts/${detail.id}`));
+    } catch (e) { notifyWarning(); flash((e as Error).message); }
     setCommenting(false);
   };
 
   const deleteComment = async (commentId: number) => {
     setDeletingComment(commentId);
-    await capi(`/api/community/comments/${commentId}`, { method: 'DELETE' });
-    if (detail) setDetail(await capi(`/api/community/posts/${detail.id}`).then(r => r.json()));
+    try {
+      await capiJson(`/api/community/comments/${commentId}`, { method: 'DELETE' });
+      if (detail) setDetail(await capiJson<PostDetail>(`/api/community/posts/${detail.id}`));
+    } catch (e) { flash((e as Error).message); }
     setDeletingComment(null);
   };
 
   const deletePost = async (postId: number) => {
-    await capi(`/api/community/posts/${postId}`, { method: 'DELETE' });
+    try { await capiJson(`/api/community/posts/${postId}`, { method: 'DELETE' }); }
+    catch (e) { flash((e as Error).message); return; }
     setDetail(null);
     await fetchPosts();
   };
@@ -218,7 +244,9 @@ export default function Community() {
     const updated = new Set([...liked, id]);
     setLiked(updated);
     localStorage.setItem('luna_liked_posts', JSON.stringify([...updated]));
-    const res = await capi(`/api/community/posts/${id}/like`, { method: 'POST' }).then(r => r.json());
+    let res: { likes: number };
+    try { res = await capiJson(`/api/community/posts/${id}/like`, { method: 'POST' }); }
+    catch { return; }
     setPosts(ps => ps.map(p => p.id === id ? { ...p, likes: res.likes } : p));
     if (detail?.id === id) setDetail(d => d ? { ...d, likes: res.likes } : d);
   };
@@ -242,12 +270,12 @@ export default function Community() {
               <Avatar name={detail.anon_name} color={detail.anon_color} size={26} />
               <span style={{ fontSize: 13, fontWeight: 600, color: detail.anon_color }}>{detail.anon_name}</span>
               <span style={{ fontSize: 12, color: 'var(--text-3)' }}>· {ago(detail.created_at)}</span>
-              {identity && detail.anon_name === identity.name && detail.anon_color === identity.color && (
+              {isMine(detail) && (
                 <span style={{ fontSize: 11, color: 'var(--text-3)', background: 'var(--border)', borderRadius: 4, padding: '1px 5px' }}>you</span>
               )}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              {identity && detail.anon_name === identity.name && detail.anon_color === identity.color ? (
+              {isMine(detail) ? (
                 <button onClick={() => { if (window.confirm(tr('community.deletePostConfirm'))) deletePost(detail.id); }}
                   style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '5px 10px', borderRadius: 99, border: '1px solid var(--border)', background: '#fff', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer' }}>
                   <Trash2 size={11} /> Delete post
@@ -285,7 +313,7 @@ export default function Community() {
             </p>
           )}
           {visibleComments.map((c, i) => {
-            const isOwn = identity && c.anon_name === identity.name && c.anon_color === identity.color;
+            const isOwn = isMine(c);
             return (
               <div key={c.id} style={{ padding: '14px 22px', borderBottom: i < visibleComments.length - 1 ? '1px solid var(--border)' : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 7 }}>
@@ -388,7 +416,16 @@ export default function Community() {
       )}
 
       {/* Posts feed */}
-      {visiblePosts.length === 0 ? (
+      {!loaded ? (
+        <div aria-busy="true" aria-label={tr('common.loading')} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[0, 1, 2].map(i => <div key={i} className="luna-skel" style={{ height: 118 }} />)}
+        </div>
+      ) : loadError && posts.length === 0 ? (
+        <div role="alert" style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, padding: '40px 28px', textAlign: 'center' }}>
+          <p style={{ fontSize: 15, color: 'var(--text-2)', lineHeight: 1.5, marginBottom: 16 }}>{loadError}</p>
+          <button onClick={() => { setLoaded(false); fetchPosts(); }} className="luna-btn-grad" style={{ padding: '10px 22px', borderRadius: 99, fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}>{tr('common.retry')}</button>
+        </div>
+      ) : visiblePosts.length === 0 ? (
         <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, padding: '52px 28px', textAlign: 'center' }}>
           <p style={{ fontSize: 30, marginBottom: 12 }}>🌸</p>
           <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
@@ -423,7 +460,7 @@ export default function Community() {
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-3)', fontSize: 12 }}>
                     <MessageCircle size={12} strokeWidth={1.5} /> {p.comment_count}
                   </span>
-                  {!(identity && p.anon_name === identity.name && p.anon_color === identity.color) && (
+                  {!isMine(p) && (
                     <button onClick={e => { e.stopPropagation(); reportContent('posts', p.id); }} title="Report this post"
                       style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--text-3)', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', padding: '3px 0' }}>
                       <Flag size={11} strokeWidth={1.5} />

@@ -33,6 +33,7 @@ export const ko: Record<keyof typeof en, string> = {
   'common.close': '닫기',
   'common.done': '완료',
   'common.loading': '불러오는 중…',
+  'common.retry': "다시 시도",
   'common.days': '일',
   'common.optional': '선택 사항',
   'common.noDataYet': '아직 데이터가 없습니다',
