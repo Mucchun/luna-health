@@ -1,5 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Check, Trash2, AlertTriangle } from 'lucide-react';
+import { Check, Trash2, AlertTriangle, FileText, ShieldCheck, Users, ChevronRight } from 'lucide-react';
+import { Globe } from 'lucide-react';
+import { LegalModal, PRIVACY_TEXT } from '../lib/legal';
+import { useI18n, LANGUAGES } from '../i18n';
 
 const CONDITIONS = ['PCOS', 'Endometriosis', 'PMDD'];
 const COND_STYLE: Record<string, [string, string, string]> = {
@@ -27,11 +30,13 @@ const DATA_SECTIONS = [
 ];
 
 export default function Settings() {
+  const { tr, lang, setLang } = useI18n();
   const [profile, setProfile] = useState<any>(null);
   const [saved, setSaved] = useState(false);
   const [clearing, setClearing] = useState<string | null>(null);
   const [nuking, setNuking] = useState(false);
   const [clearDone, setClearDone] = useState<string | null>(null);
+  const [legal, setLegal] = useState<null | { title: string; body: string }>(null);
 
   useEffect(() => { fetch('/api/profile').then(r => r.json()).then(setProfile); }, []);
   if (!profile) return null;
@@ -66,7 +71,7 @@ export default function Settings() {
 
   return (
     <div style={{ maxWidth: 500, padding: '28px 24px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 4 }}>Settings</h1>
+      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 4 }}>{tr('settings.title')}</h1>
       <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 28 }}>Your profile powers phase detection and symptom suggestions</p>
 
       {saved && (
@@ -74,6 +79,33 @@ export default function Settings() {
           <Check size={15} /> Saved
         </div>
       )}
+
+      {/* Language switcher */}
+      <div style={section}>
+        <p style={sHead}><Globe size={12} style={{ verticalAlign: 'middle', marginRight: 6, marginTop: -2 }} />{tr('settings.language')}</p>
+        <div style={{ padding: '12px 12px 14px' }}>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '2px 8px 12px' }}>{tr('settings.languageSub')}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+            {LANGUAGES.map(l => {
+              const active = l.code === lang;
+              return (
+                <button key={l.code} type="button" onClick={() => setLang(l.code)} style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8,
+                  padding: '11px 14px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+                  border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                  background: active ? 'var(--accent-light)' : '#fff',
+                }}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ fontSize: 13, fontWeight: active ? 700 : 500, color: active ? 'var(--accent)' : 'var(--text)', display: 'block' }}>{l.label}</span>
+                    <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{l.english}</span>
+                  </span>
+                  {active && <Check size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       <form onSubmit={handleSave}>
         <div style={section}>
@@ -201,6 +233,30 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {/* About & Legal */}
+      <div style={{ marginTop: 28 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14 }}>
+          <ShieldCheck size={14} style={{ color: 'var(--text-3)' }} />
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.7px' }}>About &amp; Legal</p>
+        </div>
+        <div style={section}>
+          {[
+            { icon: FileText, label: tr('disclaimer.title'), title: tr('disclaimer.title'), body: tr('legal.disclaimer') },
+            { icon: ShieldCheck, label: tr('disclaimer.privacyPolicy'), title: tr('disclaimer.privacyPolicy'), body: PRIVACY_TEXT },
+            { icon: Users, label: tr('community.guidelines'), title: tr('community.guidelines'), body: tr('legal.guidelines') },
+          ].map(({ icon: Icon, label, title, body }, i) => (
+            <button key={label} onClick={() => setLegal({ title, body })} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '14px 20px', borderBottom: i < 2 ? '1px solid var(--border)' : 'none', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+              <Icon size={16} style={{ color: 'var(--text-3)', flexShrink: 0 }} />
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{label}</span>
+              <ChevronRight size={15} style={{ color: 'var(--text-3)' }} />
+            </button>
+          ))}
+        </div>
+        <p style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'center', marginTop: 14 }}>Luna Health · v1.0 · Your data stays on your device</p>
+      </div>
+
+      {legal && <LegalModal title={legal.title} body={legal.body} onClose={() => setLegal(null)} />}
     </div>
   );
 }

@@ -1,8 +1,10 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
-// Set VITE_API_URL before building for App Store, e.g.:
-// VITE_API_URL=https://luna-health-api.fly.dev npx cap sync ios
-const API_URL = process.env.VITE_API_URL || '';
+// The app is fully on-device — all health data and AI run locally (no backend to
+// host), so no API URL is needed for a production build. The only optional server
+// is the shared anonymous community: set VITE_COMMUNITY_API_URL before building
+// to connect it across devices, e.g.
+//   VITE_COMMUNITY_API_URL=https://luna-health-api.fly.dev npx cap sync ios
 
 const config: CapacitorConfig = {
   appId: 'com.lunahealth.app',

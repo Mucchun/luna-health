@@ -27,7 +27,10 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
+import { useI18n } from '../i18n';
+
 export default function Medications() {
+  const { tr } = useI18n();
   const [meds, setMeds] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', type: '', dose: '', frequency: '', start_date: '', notes: '' });
@@ -61,8 +64,8 @@ export default function Medications() {
     <div style={{ maxWidth: 620, padding: '28px 24px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Medications & Supplements</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Track what you're taking and log daily adherence</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.medications')}</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('meds.subtitle')}</p>
         </div>
         <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={13} /> Add
@@ -73,7 +76,7 @@ export default function Medications() {
       {active.length > 0 && (
         <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden', marginBottom: 14 }}>
           <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Today's Check-in</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('meds.checkin')}</p>
             <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
           </div>
           <div style={{ padding: '0 22px' }}>
@@ -113,7 +116,7 @@ export default function Medications() {
         </div>
         <div style={{ padding: '0 22px' }}>
           {active.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '24px 0' }}>No active medications or supplements</p>
+            <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '24px 0' }}>{tr('meds.noActive')}</p>
           ) : active.map((m, i) => {
             const [color, bg] = TYPE_BADGE[m.type] || TYPE_BADGE.Other;
             return (
@@ -164,32 +167,32 @@ export default function Medications() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(28,10,18,0.45)', backdropFilter: 'blur(6px)' }}>
           <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 440, padding: 26, maxHeight: '88vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px' }}>Add Medication</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px' }}>{tr('meds.add')}</h3>
               <button onClick={() => setShowForm(false)} style={{ cursor: 'pointer', border: 'none', background: 'var(--border)', borderRadius: 99, padding: '5px 6px', color: 'var(--text-2)', display: 'flex' }}><X size={14} /></button>
             </div>
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={lbl}>Name</label>
-                <input required type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Metformin, Inositol, Visanne…" style={inp} />
+                <label style={lbl}>{tr('meds.name')}</label>
+                <input required type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder={tr('meds.namePlaceholder')} style={inp} />
               </div>
               <div>
-                <label style={lbl}>Type</label>
+                <label style={lbl}>{tr('meds.type')}</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                   {MED_TYPES.map(t => <Chip key={t} active={form.type === t} onClick={() => setForm(f => ({ ...f, type: t }))}>{t}</Chip>)}
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div><label style={lbl}>Dose</label><input type="text" value={form.dose} onChange={e => setForm(f => ({ ...f, dose: e.target.value }))} placeholder="500mg" style={inp} /></div>
+                <div><label style={lbl}>{tr('meds.dose')}</label><input type="text" value={form.dose} onChange={e => setForm(f => ({ ...f, dose: e.target.value }))} placeholder="500mg" style={inp} /></div>
                 <div>
-                  <label style={lbl}>Frequency</label>
+                  <label style={lbl}>{tr('meds.frequency')}</label>
                   <select value={form.frequency} onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))} style={{ ...inp, cursor: 'pointer' }}>
-                    <option value="">Select…</option>
+                    <option value="">{tr('meds.select')}</option>
                     {FREQS.map(f => <option key={f} value={f}>{f}</option>)}
                   </select>
                 </div>
               </div>
-              <div><label style={lbl}>Start date</label><input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={inp} /></div>
-              <div><label style={lbl}>Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Why prescribed, how it's helping…" style={inp} /></div>
+              <div><label style={lbl}>{tr('meds.startDate')}</label><input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={inp} /></div>
+              <div><label style={lbl}>{tr('log.notes')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>({tr('common.optional')})</span></label><input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={tr('meds.notesPlaceholder')} style={inp} /></div>
               <button type="submit" disabled={!form.name || !form.type} style={{ padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: (!form.name || !form.type) ? 0.4 : 1, marginTop: 4 }}>
                 Save
               </button>

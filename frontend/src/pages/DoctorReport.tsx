@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
+import { Citations } from '../lib/references';
+import { useI18n } from '../i18n';
 
 export default function DoctorReport() {
+  const { tr } = useI18n();
   const [report, setReport] = useState<any>(null);
   const [days, setDays] = useState(90);
 
@@ -25,8 +28,8 @@ export default function DoctorReport() {
     <div style={{ maxWidth: 700, padding: '28px 24px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Doctor Visit Report</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Auto-generated summary — bring this to your appointment</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.doctorReport')}</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('report.subtitle')}</p>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <select value={days} onChange={e => setDays(parseInt(e.target.value))} style={{ border: '1px solid var(--border)', borderRadius: 99, padding: '7px 14px', fontSize: 12, background: '#fff', color: 'var(--text-2)', cursor: 'pointer' }}>
@@ -43,7 +46,7 @@ export default function DoctorReport() {
       <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden' }}>
         {/* Header strip */}
         <div style={{ background: 'var(--accent)', padding: '24px 28px', color: '#fff' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', opacity: 0.7, marginBottom: 8 }}>Health Summary Report</p>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1.2px', textTransform: 'uppercase', opacity: 0.7, marginBottom: 8 }}>{tr('report.summaryReport')}</p>
           <p style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1 }}>{report.profile.name}</p>
           <p style={{ fontSize: 13, opacity: 0.8, marginTop: 4 }}>{report.profile.conditions.join(' · ')}</p>
           <p style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>{startDate} — {endDate}</p>
@@ -66,7 +69,7 @@ export default function DoctorReport() {
 
           {/* Conditions */}
           <div style={sec}>
-            <p style={secLbl}>Conditions</p>
+            <p style={secLbl}>{tr('report.conditions')}</p>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {report.profile.conditions.map((c: string) => (
                 <span key={c} style={{ fontSize: 13, fontWeight: 600, padding: '6px 14px', borderRadius: 99, background: 'var(--accent-light)', color: 'var(--accent)', border: '1.5px solid var(--accent-border)' }}>{c}</span>
@@ -77,7 +80,7 @@ export default function DoctorReport() {
           {/* Top symptoms */}
           {report.top_symptoms.length > 0 && (
             <div style={sec}>
-              <p style={secLbl}>Most Frequent Symptoms</p>
+              <p style={secLbl}>{tr('report.mostFrequent')}</p>
               {report.top_symptoms.map((s: any, i: number) => (
                 <div key={s.symptom} style={{ marginBottom: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
@@ -107,7 +110,7 @@ export default function DoctorReport() {
           {/* Cycles */}
           {report.cycles.length > 0 && (
             <div style={sec}>
-              <p style={secLbl}>Recent Cycles</p>
+              <p style={secLbl}>{tr('report.recentCycles')}</p>
               {report.cycles.map((c: any, i: number) => {
                 const dur = c.end_date ? Math.round((new Date(c.end_date).getTime() - new Date(c.start_date).getTime()) / 86400000) + 1 : null;
                 return (
@@ -123,7 +126,7 @@ export default function DoctorReport() {
           {/* Medications */}
           {report.active_medications.length > 0 && (
             <div style={sec}>
-              <p style={secLbl}>Current Medications & Supplements</p>
+              <p style={secLbl}>{tr('report.currentMeds')}</p>
               {report.active_medications.map((m: any, i: number) => (
                 <div key={m.id} style={{ ...row, borderBottom: i < report.active_medications.length - 1 ? '1px solid var(--border)' : 'none', alignItems: 'flex-start' }}>
                   <div>
@@ -139,7 +142,7 @@ export default function DoctorReport() {
           {/* Labs */}
           {report.labs.length > 0 && (
             <div style={sec}>
-              <p style={secLbl}>Lab Results</p>
+              <p style={secLbl}>{tr('report.labResults')}</p>
               {report.labs.slice(0, 10).map((l: any, i: number) => (
                 <div key={l.id} style={{ ...row, borderBottom: i < Math.min(report.labs.length, 10) - 1 ? '1px solid var(--border)' : 'none' }}>
                   <span style={{ color: 'var(--text)' }}>{l.marker}</span>
@@ -157,8 +160,13 @@ export default function DoctorReport() {
           {/* Disclaimer */}
           <div style={{ background: 'var(--bg)', borderRadius: 12, padding: '14px 16px', marginTop: 8 }}>
             <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6 }}>
-              This report is generated from self-reported symptom data for informational purposes only. It is not a medical diagnosis. Please share with a qualified healthcare provider for interpretation.
+              This report is generated on your device from self-reported symptom data for informational purposes only. It is not a medical diagnosis. Please share with a qualified healthcare provider for interpretation.
             </p>
+          </div>
+
+          {/* Citations — Guideline 1.4.1 */}
+          <div style={{ marginTop: 12 }}>
+            <Citations topics={['general', 'cycle']} />
           </div>
 
           <p style={{ fontSize: 10, color: 'var(--border-strong)', textAlign: 'right', marginTop: 16 }}>

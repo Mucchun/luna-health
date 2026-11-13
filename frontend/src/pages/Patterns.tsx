@@ -15,7 +15,10 @@ const TT = ({ active, payload, label }: any) => {
 
 const card: React.CSSProperties = { background: '#fff', border: '1px solid var(--border)', borderRadius: 20, padding: '20px 22px' };
 
+import { useI18n } from '../i18n';
+
 export default function Patterns() {
+  const { tr } = useI18n();
   const [symptoms, setSymptoms] = useState<any[]>([]);
   const [days, setDays] = useState(90);
 
@@ -48,8 +51,8 @@ export default function Patterns() {
     <div style={{ maxWidth: 860, padding: '28px 24px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Patterns</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Insights from your symptom history</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('nav.patterns')}</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('patterns.subtitle')}</p>
         </div>
         <select value={days} onChange={e => setDays(parseInt(e.target.value))} style={{ border: '1px solid var(--border)', borderRadius: 99, padding: '7px 14px', fontSize: 12, background: '#fff', color: 'var(--text-2)', cursor: 'pointer' }}>
           <option value={30}>30 days</option>
@@ -61,8 +64,8 @@ export default function Patterns() {
 
       {symptoms.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-3)' }}>
-          <p style={{ fontSize: 16, marginBottom: 8, fontWeight: 600 }}>No data yet</p>
-          <p style={{ fontSize: 13 }}>Start logging symptoms to see patterns</p>
+          <p style={{ fontSize: 16, marginBottom: 8, fontWeight: 600 }}>{tr('common.noDataYet')}</p>
+          <p style={{ fontSize: 13 }}>{tr('patterns.startLogging')}</p>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -79,7 +82,7 @@ export default function Patterns() {
           )}
 
           <div style={card}>
-            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 18 }}>Top symptoms by frequency</p>
+            <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 18 }}>{tr('patterns.topByFreq')}</p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={freqData} layout="vertical" margin={{ left: 16, right: 16 }}>
                 <XAxis type="number" tick={{ fontSize: 10, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
@@ -92,7 +95,7 @@ export default function Patterns() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <div style={card}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>By day of week</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>{tr('patterns.byDayOfWeek')}</p>
               <ResponsiveContainer width="100%" height={150}>
                 <BarChart data={dowData} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                   <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
@@ -106,7 +109,7 @@ export default function Patterns() {
 
             {locData.length > 0 && (
               <div style={card}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Pain locations</p>
+                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>{tr('patterns.painLocations')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                   {locData.map(([name, count], i) => (
                     <div key={name} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

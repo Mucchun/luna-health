@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
+import { notifySuccess } from '../lib/haptics';
+import { useI18n } from '../i18n';
+import { trTerm } from '../i18n/medical';
 
 const CONDITION_SYMPTOMS: Record<string, string[]> = {
   PCOS: ['Pelvic cramping', 'Bloating', 'Acne / skin breakouts', 'Hair loss (scalp)', 'Excess facial/body hair', 'Weight gain / difficulty losing weight', 'Fatigue', 'Irregular bleeding', 'Mood swings', 'Brain fog', 'Low libido', 'Headache', 'Insulin resistance symptoms', 'Dark skin patches'],
@@ -32,6 +35,7 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
 }
 
 export default function LogSymptom() {
+  const { tr, lang } = useI18n();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [saved, setSaved] = useState(false);
@@ -53,6 +57,7 @@ export default function LogSymptom() {
     const symptomName = useCustom ? custom : form.symptom;
     if (!symptomName) return;
     await fetch('/api/symptoms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, symptom: symptomName }) });
+    notifySuccess();
     setSaved(true);
     setTimeout(() => { setSaved(false); navigate('/'); }, 1200);
   };
@@ -63,27 +68,27 @@ export default function LogSymptom() {
 
   return (
     <div style={{ maxWidth: 500, padding: '28px 24px', margin: '0 auto' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 4 }}>Log Symptom</h1>
-      <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 28 }}>Track what you're feeling for better pattern detection</p>
+      <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px', marginBottom: 4 }}>{tr('nav.logSymptom')}</h1>
+      <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 28 }}>{tr('log.subtitle')}</p>
 
       {saved && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--sage-light)', color: 'var(--sage)', border: '1px solid #A0DBC0', borderRadius: 12, padding: '10px 14px', fontSize: 13, fontWeight: 500, marginBottom: 20 }}>
-          <Check size={15} /> Saved!
+          <Check size={15} /> {tr('log.saved')}
         </div>
       )}
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
         <div>
-          <label style={label}>Date</label>
+          <label style={label}>{tr('log.date')}</label>
           <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={input} />
         </div>
 
         <div>
-          <label style={label}>Condition</label>
+          <label style={label}>{tr('log.condition')}</label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[...profile.conditions, 'General'].map((c: string) => (
               <Chip key={c} active={form.condition === c} onClick={() => { setForm(f => ({ ...f, condition: c, symptom: '' })); setUseCustom(false); }}>
-                {c}
+                {c === 'General' ? tr('log.general') : c}
               </Chip>
             ))}
           </div>
@@ -91,17 +96,17 @@ export default function LogSymptom() {
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <label style={{ ...label, marginBottom: 0 }}>Symptom</label>
+            <label style={{ ...label, marginBottom: 0 }}>{tr('log.symptom')}</label>
             <button type="button" onClick={() => setUseCustom(v => !v)} style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 500, border: 'none', background: 'none', cursor: 'pointer' }}>
-              {useCustom ? 'From list' : 'Type custom'}
+              {useCustom ? tr('log.fromList') : tr('log.typeCustom')}
             </button>
           </div>
           {useCustom ? (
-            <input type="text" placeholder="Describe your symptom…" value={custom} onChange={e => setCustom(e.target.value)} style={input} />
+            <input type="text" placeholder={tr('log.describePlaceholder')} value={custom} onChange={e => setCustom(e.target.value)} style={input} />
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, maxHeight: 210, overflowY: 'auto' }}>
               {symptoms.map(s => (
-                <Chip key={s} active={form.symptom === s} onClick={() => setForm(f => ({ ...f, symptom: s }))}>{s}</Chip>
+                <Chip key={s} active={form.symptom === s} onClick={() => setForm(f => ({ ...f, symptom: s }))}>{trTerm(s, lang)}</Chip>
               ))}
             </div>
           )}
@@ -109,27 +114,27 @@ export default function LogSymptom() {
 
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <label style={{ ...label, marginBottom: 0 }}>Severity</label>
+            <label style={{ ...label, marginBottom: 0 }}>{tr('log.severity')}</label>
             <span style={{ fontSize: 14, fontWeight: 800, color: sevColor }}>{form.severity}<span style={{ fontSize: 11, fontWeight: 400, color: 'var(--text-3)' }}>/10</span></span>
           </div>
           <input type="range" min={1} max={10} value={form.severity} onChange={e => setForm(f => ({ ...f, severity: parseInt(e.target.value) }))} style={{ width: '100%', accentColor: 'var(--accent)', cursor: 'pointer', height: 4 }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-            {['Mild', 'Moderate', 'Severe'].map(l => <span key={l} style={{ fontSize: 10, color: 'var(--text-3)' }}>{l}</span>)}
+            {[tr('log.mild'), tr('log.moderate'), tr('log.severe')].map(l => <span key={l} style={{ fontSize: 10, color: 'var(--text-3)' }}>{l}</span>)}
           </div>
         </div>
 
         <div>
-          <label style={label}>Body location <span style={{ textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optional)</span></label>
+          <label style={label}>{tr('log.bodyLocation')} <span style={{ textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>({tr('common.optional')})</span></label>
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {BODY_LOCATIONS.map(l => (
-              <Chip key={l} active={form.body_location === l} onClick={() => setForm(f => ({ ...f, body_location: f.body_location === l ? '' : l }))}>{l}</Chip>
+              <Chip key={l} active={form.body_location === l} onClick={() => setForm(f => ({ ...f, body_location: f.body_location === l ? '' : l }))}>{trTerm(l, lang)}</Chip>
             ))}
           </div>
         </div>
 
         <div>
-          <label style={label}>Notes <span style={{ textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>(optional)</span></label>
-          <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any context about this symptom…" rows={3} style={{ ...input, resize: 'none', lineHeight: 1.6 }} />
+          <label style={label}>{tr('log.notes')} <span style={{ textTransform: 'none', fontWeight: 400, letterSpacing: 0 }}>({tr('common.optional')})</span></label>
+          <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={tr('log.notesPlaceholder')} rows={3} style={{ ...input, resize: 'none', lineHeight: 1.6 }} />
         </div>
 
         <button type="submit" disabled={useCustom ? !custom : !form.symptom} style={{
@@ -138,7 +143,7 @@ export default function LogSymptom() {
           opacity: (useCustom ? !custom : !form.symptom) ? 0.4 : 1,
           letterSpacing: '0.1px',
         }}>
-          Save Symptom
+          {tr('log.save')}
         </button>
       </form>
     </div>

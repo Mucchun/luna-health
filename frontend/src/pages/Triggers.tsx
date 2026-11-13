@@ -23,7 +23,11 @@ function Chip({ active, onClick, children }: { active: boolean; onClick: () => v
   );
 }
 
+import { useI18n } from '../i18n';
+import { trTerm } from '../i18n/medical';
+
 export default function Triggers() {
+  const { tr, lang } = useI18n();
   const [triggers, setTriggers] = useState<any[]>([]);
   const [correlations, setCorrelations] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
@@ -52,8 +56,8 @@ export default function Triggers() {
     <div style={{ maxWidth: 760, padding: '28px 24px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Trigger Journal</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>See what correlates with worse symptom days</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.triggerJournal')}</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('triggers.subtitle')}</p>
         </div>
         <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={13} /> Log Trigger
@@ -62,8 +66,8 @@ export default function Triggers() {
 
       {correlations.length > 0 && (
         <div style={{ ...card, marginBottom: 14 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>Correlations</p>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 18 }}>Avg severity on trigger days vs. non-trigger days</p>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{tr('triggers.correlations')}</p>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 18 }}>{tr('triggers.correlationsSub')}</p>
           {correlations.map(c => {
             const worse = c.impact > 0.3; const better = c.impact < -0.3;
             return (
@@ -87,9 +91,9 @@ export default function Triggers() {
       )}
 
       <div style={card}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>Recent logs</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>{tr('triggers.recentLogs')}</p>
         {triggers.length === 0 ? (
-          <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '24px 0' }}>Log food, stress, activity, and other potential triggers</p>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '24px 0' }}>{tr('triggers.recentSub')}</p>
         ) : triggers.slice(0, 20).map((t, i) => (
           <div key={t.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < triggers.slice(0, 20).length - 1 ? '1px solid var(--border)' : 'none' }} className="group">
             <div>
@@ -113,31 +117,31 @@ export default function Triggers() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(28,10,18,0.4)', backdropFilter: 'blur(4px)' }}>
           <div style={{ background: '#fff', borderRadius: 22, width: '100%', maxWidth: 420, padding: 24, maxHeight: '88vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.3px' }}>Log a Trigger</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.3px' }}>{tr('triggers.logATrigger')}</h3>
               <button onClick={() => setShowForm(false)} style={{ cursor: 'pointer', border: 'none', background: 'none', color: 'var(--text-3)' }}><X size={18} /></button>
             </div>
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div><label style={lbl}>Date</label><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={inp} /></div>
+              <div><label style={lbl}>{tr('log.date')}</label><input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} style={inp} /></div>
               <div>
-                <label style={lbl}>Category</label>
+                <label style={lbl}>{tr('triggers.category')}</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {CATS.map(c => <Chip key={c.label} active={form.category === c.label} onClick={() => { setForm(f => ({ ...f, category: c.label, value: '' })); setUseCustom(false); }}>{c.label}</Chip>)}
+                  {CATS.map(c => <Chip key={c.label} active={form.category === c.label} onClick={() => { setForm(f => ({ ...f, category: c.label, value: '' })); setUseCustom(false); }}>{trTerm(c.label, lang)}</Chip>)}
                 </div>
               </div>
               {form.category && (
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <label style={{ ...lbl, marginBottom: 0 }}>Trigger</label>
+                    <label style={{ ...lbl, marginBottom: 0 }}>{tr('triggers.trigger')}</label>
                     <button type="button" onClick={() => setUseCustom(v => !v)} style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 500, border: 'none', background: 'none', cursor: 'pointer' }}>{useCustom ? 'From list' : 'Custom'}</button>
                   </div>
-                  {useCustom ? <input type="text" value={customVal} onChange={e => setCustomVal(e.target.value)} placeholder="Describe trigger…" style={inp} /> : (
+                  {useCustom ? <input type="text" value={customVal} onChange={e => setCustomVal(e.target.value)} placeholder={tr('triggers.describePlaceholder')} style={inp} /> : (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                      {CATS.find(c => c.label === form.category)?.options.map(o => <Chip key={o} active={form.value === o} onClick={() => setForm(f => ({ ...f, value: o }))}>{o}</Chip>)}
+                      {CATS.find(c => c.label === form.category)?.options.map(o => <Chip key={o} active={form.value === o} onClick={() => setForm(f => ({ ...f, value: o }))}>{trTerm(o, lang)}</Chip>)}
                     </div>
                   )}
                 </div>
               )}
-              <div><label style={lbl}>Notes (optional)</label><input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="Any context…" style={inp} /></div>
+              <div><label style={lbl}>{tr('log.notes')} ({tr('common.optional')})</label><input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={tr('triggers.anyContext')} style={inp} /></div>
               <button type="submit" disabled={!form.category || (useCustom ? !customVal : !form.value)} style={{ padding: '11px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: (!form.category || (useCustom ? !customVal : !form.value)) ? 0.4 : 1 }}>
                 Save Trigger
               </button>

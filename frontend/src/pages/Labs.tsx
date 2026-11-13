@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Plus, X, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { Citations } from '../lib/references';
+import { useI18n } from '../i18n';
 
 const MARKERS = [
   { name: 'Testosterone (total)', unit: 'ng/dL', min: 15, max: 70, cond: 'PCOS', note: 'Elevated in PCOS — above 70 ng/dL warrants investigation' },
@@ -52,6 +54,7 @@ const TREND_ICON: Record<string, any> = {
 };
 
 export default function Labs() {
+  const { tr } = useI18n();
   const [labs, setLabs] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], marker: '', value: '', unit: '', lab: '', notes: '' });
@@ -107,8 +110,8 @@ export default function Labs() {
     <div style={{ maxWidth: 760, padding: '28px 24px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Lab Values</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Track hormones and biomarkers relevant to your conditions</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.labValues')}</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('labs.subtitle')}</p>
         </div>
         <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={13} /> Add Result
@@ -123,7 +126,7 @@ export default function Labs() {
               <Sparkles size={13} style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>AI Lab Analysis</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{tr('labs.aiAnalysis')}</p>
               {aiResult && <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>
                 {new Date(aiResult.generated_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>}
@@ -152,7 +155,7 @@ export default function Labs() {
               {/* Marker chips */}
               {a.markers?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Marker Status</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.markerStatus')}</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {a.markers.map((m: any) => {
                       const st = STATUS_STYLE[m.status] || STATUS_STYLE.unknown;
@@ -190,7 +193,7 @@ export default function Labs() {
               {/* Key findings */}
               {a.key_findings?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Key Findings</p>
+                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.keyFindings')}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {a.key_findings.map((f: string, i: number) => (
                       <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
@@ -206,7 +209,7 @@ export default function Labs() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {a.doctor_questions?.length > 0 && (
                   <div style={{ background: '#DBEAFE22', border: '1px solid #DBEAFE', borderRadius: 12, padding: '12px 14px' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Ask your doctor</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.askDoctor')}</p>
                     <ol style={{ paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                       {a.doctor_questions.map((q: string, i: number) => (
                         <li key={i} style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
@@ -216,7 +219,7 @@ export default function Labs() {
                 )}
                 {a.follow_up_tests?.length > 0 && (
                   <div style={{ background: 'var(--purple-light)', border: '1px solid #DDD6FE', borderRadius: 12, padding: '12px 14px' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Consider testing</p>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.considerTesting')}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                       {a.follow_up_tests.map((t: string, i: number) => (
                         <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 99, background: 'white', color: 'var(--purple)' }}>{t}</span>
@@ -262,7 +265,7 @@ export default function Labs() {
       {/* Latest results grid */}
       {Object.keys(latest).length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>Latest Results</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>{tr('labs.latestResults')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
             {Object.values(latest).map((l: any) => {
               const def = MARKERS.find(m => m.name === l.marker);
@@ -290,7 +293,7 @@ export default function Labs() {
       {/* All records */}
       <div style={card}>
         <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>All Records</p>
+          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('labs.allRecords')}</p>
         </div>
         <div style={{ padding: '0 22px' }}>
           {labs.length === 0 ? (
@@ -321,7 +324,7 @@ export default function Labs() {
         <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, background: 'rgba(28,10,18,0.45)', backdropFilter: 'blur(6px)' }}>
           <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 440, padding: 26, maxHeight: '88vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px' }}>Add Lab Result</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px' }}>{tr('labs.addResult')}</h3>
               <button onClick={() => setShowForm(false)} style={{ cursor: 'pointer', border: 'none', background: 'var(--border)', borderRadius: 99, padding: '5px 6px', color: 'var(--text-2)', display: 'flex' }}><X size={14} /></button>
             </div>
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -329,27 +332,32 @@ export default function Labs() {
               <div>
                 <label style={lbl}>Marker</label>
                 <select value={form.marker} onChange={e => { const d = MARKERS.find(m => m.name === e.target.value); setForm(f => ({ ...f, marker: e.target.value, unit: d?.unit || '' })); }} style={{ ...inp, cursor: 'pointer' }}>
-                  <option value="">Select a marker…</option>
+                  <option value="">{tr('labs.selectMarker')}</option>
                   {MARKERS.map(m => <option key={m.name} value={m.name}>{m.name} ({m.unit}) — {m.cond}</option>)}
-                  <option value="__custom">Other / custom</option>
+                  <option value="__custom">{tr('labs.otherCustom')}</option>
                 </select>
                 {selDef && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.5 }}>ℹ {selDef.note}</p>}
               </div>
               {form.marker === '__custom' && (
-                <div><label style={lbl}>Marker name</label><input type="text" placeholder="e.g. Cortisol" onChange={e => setForm(f => ({ ...f, marker: e.target.value }))} style={inp} /></div>
+                <div><label style={lbl}>Marker name</label><input type="text" placeholder={tr('labs.markerNamePlaceholder')} onChange={e => setForm(f => ({ ...f, marker: e.target.value }))} style={inp} /></div>
               )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 <div><label style={lbl}>Value</label><input type="number" step="any" required value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} style={inp} /></div>
                 <div><label style={lbl}>Unit</label><input type="text" required value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} placeholder="ng/dL, U/mL…" style={inp} /></div>
               </div>
-              <div><label style={lbl}>Lab / clinic <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="text" value={form.lab} onChange={e => setForm(f => ({ ...f, lab: e.target.value }))} placeholder="e.g. Quest Diagnostics" style={inp} /></div>
+              <div><label style={lbl}>Lab / clinic <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="text" value={form.lab} onChange={e => setForm(f => ({ ...f, lab: e.target.value }))} placeholder={tr('labs.labClinicPlaceholder')} style={inp} /></div>
               <button type="submit" disabled={!form.marker || !form.value || !form.unit} style={{ padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: (!form.marker || !form.value || !form.unit) ? 0.4 : 1, marginTop: 4 }}>
-                Save Result
+                {tr('labs.saveResult')}
               </button>
             </form>
           </div>
         </div>
       )}
+
+      {/* Citations — Guideline 1.4.1 */}
+      <div style={{ marginTop: 14 }}>
+        <Citations topics={['labs', 'general']} />
+      </div>
     </div>
   );
 }

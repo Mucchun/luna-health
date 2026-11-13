@@ -84,7 +84,10 @@ function LunaFace({ talking = false, open = false }: { talking?: boolean; open?:
   );
 }
 
+import { useI18n } from '../i18n';
+
 export default function ChatWidget() {
+  const { tr } = useI18n();
   const [open, setOpen]       = useState(false);
   const [msgs, setMsgs]       = useState<Msg[]>([]);
   const [input, setInput]     = useState('');
@@ -216,7 +219,7 @@ export default function ChatWidget() {
               </svg>
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1 }}>Luna AI</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1 }}>{tr('chat.title')}</p>
               <p style={{ fontSize: 10, color: 'var(--sidebar-muted)', marginTop: 1 }}>
                 {loading ? 'typing…' : 'Your health assistant'}
               </p>
@@ -281,7 +284,7 @@ export default function ChatWidget() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
-              placeholder="Ask Luna anything…"
+              placeholder={tr('chat.placeholder')}
               disabled={loading}
               style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 12, padding: '9px 12px', fontSize: 13, color: 'var(--text)', background: '#fff', fontFamily: 'inherit', outline: 'none' }}
             />

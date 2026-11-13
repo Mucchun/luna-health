@@ -140,7 +140,10 @@ const GENERAL: Content = {
   meals: [],
 };
 
+import { useI18n } from '../i18n';
+
 export default function Wellness() {
+  const { tr } = useI18n();
   const [conditions, setConditions] = useState<string[]>([]);
   const [selected, setSelected] = useState<string>('General');
 
@@ -161,8 +164,8 @@ export default function Wellness() {
   return (
     <div style={{ maxWidth: 720, padding: '28px 24px', margin: '0 auto' }}>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Wellness & Nutrition</h1>
-        <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Evidence-based dietary guidance for your conditions</p>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.wellness')}</h1>
+        <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('wellness.subtitle')}</p>
       </div>
 
       {/* Condition tabs */}
@@ -189,7 +192,7 @@ export default function Wellness() {
       {/* Eat & Avoid */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
         <div style={card}>
-          <p style={sectionLbl}>Eat more of</p>
+          <p style={sectionLbl}>{tr('wellness.eatMore')}</p>
           {d.eat.map(g => (
             <div key={g.category} style={{ marginBottom: 12 }}>
               <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--sage)', marginBottom: 6, letterSpacing: '0.3px' }}>{g.category}</p>
@@ -203,7 +206,7 @@ export default function Wellness() {
         </div>
 
         <div style={card}>
-          <p style={sectionLbl}>Limit or avoid</p>
+          <p style={sectionLbl}>{tr('wellness.limitAvoid')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {d.avoid.map(item => (
               <div key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12, color: 'var(--text)', lineHeight: 1.4 }}>
@@ -217,7 +220,7 @@ export default function Wellness() {
 
       {/* Supplements */}
       <div style={{ ...card, marginBottom: 14 }}>
-        <p style={sectionLbl}>Evidence-based supplements</p>
+        <p style={sectionLbl}>{tr('wellness.supplements')}</p>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           {d.supplements.map((s, i) => (
             <div key={s.name} style={{ display: 'grid', gridTemplateColumns: '160px 90px 1fr', gap: 12, alignItems: 'flex-start', padding: '10px 0', borderBottom: i < d.supplements.length - 1 ? '1px solid var(--border)' : 'none' }}>
@@ -234,7 +237,7 @@ export default function Wellness() {
 
       {/* Tips */}
       <div style={{ marginBottom: 14 }}>
-        <p style={{ ...sectionLbl, marginBottom: 12 }}>Lifestyle tips</p>
+        <p style={{ ...sectionLbl, marginBottom: 12 }}>{tr('wellness.lifestyle')}</p>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
           {d.tips.map(t => (
             <div key={t.title} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 16, padding: '16px 18px' }}>
@@ -248,7 +251,7 @@ export default function Wellness() {
       {/* Meal plan */}
       {d.meals.length > 0 && (
         <div style={card}>
-          <p style={sectionLbl}>Sample meal plan</p>
+          <p style={sectionLbl}>{tr('wellness.mealPlan')}</p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
             {d.meals.map((m, i) => (
               <div key={m.meal} style={{ display: 'grid', gridTemplateColumns: '90px 1fr', gap: 16, padding: '12px 0', borderBottom: i < d.meals.length - 1 ? '1px solid var(--border)' : 'none' }}>

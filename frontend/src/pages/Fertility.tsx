@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, RefreshCw, Heart, Star, AlertCircle, ChevronRight as CR } from 'lucide-react';
+import { Citations } from '../lib/references';
+import { useI18n } from '../i18n';
 
 function localToday() {
   const d = new Date();
@@ -42,6 +44,7 @@ function calcWindow(cycles: any[], profile: any): FertilityWindow | null {
 }
 
 export default function Fertility() {
+  const { tr } = useI18n();
   const [profile, setProfile]   = useState<any>(null);
   const [cycles, setCycles]     = useState<any[]>([]);
   const [view, setView]         = useState(new Date());
@@ -97,8 +100,8 @@ export default function Fertility() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Fertility</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Ovulation predictions & AI conception insights</p>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('nav.fertility')}</h1>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('fertility.subtitle')}</p>
         </div>
         <button onClick={runAi} disabled={aiLoading}
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: aiLoading ? 'var(--border)' : 'var(--accent)', color: aiLoading ? 'var(--text-3)' : '#fff', fontSize: 12, fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer' }}>
@@ -257,7 +260,7 @@ export default function Fertility() {
           <div style={{ background: 'linear-gradient(135deg, #1A0810, #2E1030)', borderRadius: 22, padding: '22px 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
               <Heart size={13} style={{ color: '#FFAEC8' }} fill="#FFAEC8" />
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#FFAEC8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>AI Fertility Summary</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#FFAEC8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{tr('fertility.aiSummary')}</p>
             </div>
             <p style={{ fontSize: 14, color: '#F9D8E6', lineHeight: 1.7, marginBottom: 14 }}>{a.summary}</p>
             <p style={{ fontSize: 12, color: 'rgba(249,216,230,0.7)', lineHeight: 1.6 }}>{a.cycle_assessment}</p>
@@ -267,7 +270,7 @@ export default function Fertility() {
           {a.condition_impacts?.length > 0 && (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
               <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>How your conditions affect fertility</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('fertility.conditionsAffect')}</p>
               </div>
               {a.condition_impacts.map((ci: any, i: number) => (
                 <div key={i} style={{ padding: '14px 20px', borderBottom: i < a.condition_impacts.length - 1 ? '1px solid var(--border)' : 'none' }}>
@@ -285,7 +288,7 @@ export default function Fertility() {
           {a.conception_tips?.length > 0 && (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
               <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Conception tips for you</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('fertility.conceptionTips')}</p>
               </div>
               <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {a.conception_tips.map((tip: string, i: number) => (
@@ -301,7 +304,7 @@ export default function Fertility() {
           {/* Lab fertility notes */}
           {a.lab_fertility_notes && (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 20px' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Lab Insights</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('fertility.labInsights')}</p>
               <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.lab_fertility_notes}</p>
             </div>
           )}
@@ -310,7 +313,7 @@ export default function Fertility() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             {a.tracking_suggestions?.length > 0 && (
               <div style={{ background: '#F0EBFF', border: '1px solid #DDD6FE', borderRadius: 16, padding: '14px 16px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#7B52B8', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>Track to improve accuracy</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#7B52B8', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>{tr('fertility.trackToImprove')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {a.tracking_suggestions.map((s: string, i: number) => (
                     <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
@@ -323,7 +326,7 @@ export default function Fertility() {
             )}
             {a.doctor_questions?.length > 0 && (
               <div style={{ background: '#DBEAFE22', border: '1px solid #DBEAFE', borderRadius: 16, padding: '14px 16px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>Ask your doctor</p>
+                <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>{tr('fertility.askDoctor')}</p>
                 <ol style={{ paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {a.doctor_questions.map((q: string, i: number) => (
                     <li key={i} style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
@@ -345,17 +348,22 @@ export default function Fertility() {
           <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #D1F5E4, var(--accent-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Heart size={22} style={{ color: 'var(--accent)' }} />
           </div>
-          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>AI Fertility Insights</p>
+          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{tr('fertility.aiInsightsTitle')}</p>
           <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.65, maxWidth: 360, margin: '0 auto 20px' }}>
-            Get personalised fertility analysis based on your cycle history, conditions, symptoms, and lab values.
+            {tr('fertility.aiInsightsDesc')}
           </p>
           <button onClick={runAi}
             style={{ padding: '11px 26px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
             <Sparkles size={13} style={{ marginRight: 7, verticalAlign: 'middle' }} />
-            Get Fertility Insights
+            {tr('fertility.getInsights')}
           </button>
         </div>
       )}
+
+      {/* Citations — Guideline 1.4.1 */}
+      <div style={{ marginTop: 14 }}>
+        <Citations topics={['fertility', 'cycle']} />
+      </div>
     </div>
   );
 }

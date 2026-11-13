@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Citations } from '../lib/references';
+import { useI18n } from '../i18n';
+import { trTerm } from '../i18n/medical';
 
 function cyclePhase(day: number, length: number) {
   const pct = day / length;
@@ -25,6 +28,7 @@ const Tooltip_ = ({ active, payload, label }: any) => {
 };
 
 export default function Dashboard() {
+  const { tr, lang } = useI18n();
   const [stats, setStats] = useState<any>(null);
   const [predictions, setPredictions] = useState<any>(null);
   const today = new Date();
@@ -68,11 +72,11 @@ export default function Dashboard() {
   const flares = (predictions?.predictions || []).slice(0, 3);
 
   const nextPeriodDate = predictions?.next_cycle_start
-    ? new Date(predictions.next_cycle_start + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    ? new Date(predictions.next_cycle_start + 'T00:00:00').toLocaleDateString(lang, { month: 'short', day: 'numeric' })
     : null;
 
   const hour = today.getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const greeting = hour < 12 ? tr('dashboard.goodMorning') : hour < 17 ? tr('dashboard.goodAfternoon') : tr('dashboard.goodEvening');
 
   // Card style
   const card = (extra?: React.CSSProperties): React.CSSProperties => ({
@@ -90,7 +94,7 @@ export default function Dashboard() {
       <div style={{ marginBottom: 24, display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <div>
           <p style={{ fontSize: 11, fontWeight: 500, color: 'var(--text-3)', letterSpacing: '0.5px', textTransform: 'uppercase', marginBottom: 4 }}>
-            {today.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            {today.toLocaleDateString(lang, { weekday: 'long', month: 'long', day: 'numeric' })}
           </p>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.6px', lineHeight: 1.15 }}>
             {greeting}, {stats.profile.name} ✦
@@ -110,19 +114,19 @@ export default function Dashboard() {
           background: 'var(--accent)', color: '#fff',
           fontSize: 12, fontWeight: 600, padding: '8px 16px', borderRadius: 99,
         }}>
-          + Log symptom
+          {tr('dashboard.logSymptomCta')}
         </Link>
       </div>
 
-      {/* Bento grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      {/* Bento grid — responsive (see .dash-bento in index.css) */}
+      <div className="dash-bento">
 
         {/* Phase card — 2 cols */}
-        <div style={{ ...card(), gridColumn: 'span 2', padding: 0, background: phase?.bg || '#FFF5F8' }}>
+        <div className="b2" style={{ ...card(), padding: 0, background: phase?.bg || '#FFF5F8' }}>
           {phase && dayInCycle !== null ? (
             <div style={{ padding: '22px 24px' }}>
               <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: phase.color, marginBottom: 10 }}>
-                Current Phase
+                {tr('dashboard.currentPhase')}
               </p>
               <p style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-1.2px', color: 'var(--text)', lineHeight: 1 }}>
                 {phase.phase}
@@ -135,15 +139,15 @@ export default function Dashboard() {
                   <div style={{ height: '100%', width: `${phasePct}%`, background: phase.color, borderRadius: 99 }} />
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 5 }}>
-                  <span style={{ fontSize: 10, color: phase.color, fontWeight: 600 }}>Day {dayInCycle + 1} of {cycleLen}</span>
-                  <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{cycleLen - dayInCycle - 1}d remaining</span>
+                  <span style={{ fontSize: 10, color: phase.color, fontWeight: 600 }}>{tr('dashboard.dayOf', { day: dayInCycle + 1, total: cycleLen })}</span>
+                  <span style={{ fontSize: 10, color: 'var(--text-3)' }}>{tr('dashboard.daysRemaining', { n: cycleLen - dayInCycle - 1 })}</span>
                 </div>
               </div>
             </div>
           ) : (
             <div style={{ padding: '22px 24px' }}>
               <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
-                <Link to="/cycle" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>Log your first period</Link> to unlock cycle phase tracking.
+                <Link to="/cycle" style={{ color: 'var(--accent)', fontWeight: 600, textDecoration: 'none' }}>{tr('dashboard.logFirstPeriod')}</Link> {tr('dashboard.unlockPhase')}
               </p>
             </div>
           )}
@@ -152,41 +156,41 @@ export default function Dashboard() {
         {/* Day in cycle — 1 col */}
         <div style={{ ...card({ padding: '22px 20px', background: 'var(--surface-pink)' }) }}>
           <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: 12 }}>
-            Cycle day
+            {tr('dashboard.cycleDay')}
           </p>
           <p style={{ fontSize: 42, fontWeight: 800, letterSpacing: '-2px', color: 'var(--accent)', lineHeight: 1 }}>
             {dayInCycle !== null ? dayInCycle + 1 : '—'}
           </p>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>of {cycleLen} days</p>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>{tr('dashboard.ofDays', { n: cycleLen })}</p>
         </div>
 
         {/* Next period — 1 col */}
         <div style={{ ...card({ padding: '22px 20px' }) }}>
           <p style={{ fontSize: 10, fontWeight: 600, color: 'var(--text-3)', letterSpacing: '0.6px', textTransform: 'uppercase', marginBottom: 12 }}>
-            Next period
+            {tr('dashboard.nextPeriod')}
           </p>
           <p style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-1px', color: 'var(--text)', lineHeight: 1 }}>
             {nextPeriodDate || '—'}
           </p>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>predicted</p>
+          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6 }}>{tr('dashboard.predicted')}</p>
         </div>
 
         {/* Chart — 3 cols */}
-        <div style={{ ...card({ padding: '20px 22px' }), gridColumn: 'span 3' }}>
+        <div className="b3" style={{ ...card({ padding: '20px 22px' }) }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Severity — 30 days</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{tr('dashboard.severity30')}</p>
               <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
-                {totalLogs} logs · avg {avgSev !== null ? `${avgSev}/10` : '—'}
+                {tr('dashboard.logsAvg', { count: totalLogs, avg: avgSev !== null ? `${avgSev}/10` : '—' })}
               </p>
             </div>
             <Link to="/patterns" style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}>
-              Patterns →
+              {tr('dashboard.patternsLink')}
             </Link>
           </div>
           {chartData.length === 0 ? (
             <div style={{ height: 110, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-3)', fontSize: 12 }}>
-              Log symptoms to see your trend
+              {tr('dashboard.logToSeeTrend')}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={110}>
@@ -207,15 +211,15 @@ export default function Dashboard() {
         </div>
 
         {/* Today's symptoms — 1 col */}
-        <div style={{ ...card({ padding: '20px 20px' }) }}>
+        <div className="b1m" style={{ ...card({ padding: '20px 20px' }) }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Today</p>
-            <Link to="/log" style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}>+ Log</Link>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{tr('dashboard.today')}</p>
+            <Link to="/log" style={{ fontSize: 11, color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}>{tr('dashboard.logSymptomCta')}</Link>
           </div>
           {stats.today_symptoms.length === 0 ? (
             <div style={{ height: 80, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <p style={{ fontSize: 12, color: 'var(--text-3)', textAlign: 'center', lineHeight: 1.7 }}>
-                Nothing logged<br />yet today
+                {tr('dashboard.nothingToday')}
               </p>
             </div>
           ) : (
@@ -225,7 +229,7 @@ export default function Dashboard() {
                 const sevColor = sev >= 7 ? '#C83F6E' : sev >= 5 ? 'var(--amber)' : 'var(--sage)';
                 return (
                   <div key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-                    <p style={{ fontSize: 11, color: 'var(--text-2)', flex: 1, lineHeight: 1.3 }}>{s.symptom}</p>
+                    <p style={{ fontSize: 11, color: 'var(--text-2)', flex: 1, lineHeight: 1.3 }}>{trTerm(s.symptom, lang)}</p>
                     <span style={{
                       fontSize: 11, fontWeight: 700, minWidth: 26, textAlign: 'center',
                       padding: '1px 6px', borderRadius: 6, background: `${sevColor}18`, color: sevColor,
@@ -238,17 +242,17 @@ export default function Dashboard() {
         </div>
 
         {/* Top symptoms — 2 cols */}
-        <div style={{ ...card({ padding: '20px 22px' }), gridColumn: 'span 2' }}>
-          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 16 }}>Top symptoms this month</p>
+        <div className="b2" style={{ ...card({ padding: '20px 22px' }) }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', marginBottom: 16 }}>{tr('dashboard.topSymptoms')}</p>
           {stats.most_common_symptoms.length === 0 ? (
-            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>No data yet</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{tr('common.noDataYet')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
               {stats.most_common_symptoms.map((s: any, i: number) => (
                 <div key={s.symptom}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, alignItems: 'center' }}>
                     <p style={{ fontSize: 12, color: i === 0 ? 'var(--text)' : 'var(--text-2)', fontWeight: i === 0 ? 500 : 400 }}>
-                      {s.symptom}
+                      {trTerm(s.symptom, lang)}
                     </p>
                     <p style={{ fontSize: 10, color: 'var(--text-3)' }}>{s.count}× · {Math.round(s.avg_sev * 10) / 10}/10</p>
                   </div>
@@ -266,18 +270,18 @@ export default function Dashboard() {
         </div>
 
         {/* Flare predictions — 2 cols */}
-        <div style={{ ...card({ padding: '20px 22px' }), gridColumn: 'span 2' }}>
+        <div className="b2" style={{ ...card({ padding: '20px 22px' }) }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Predicted flare days</p>
-            <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 500 }}>From cycle history</span>
+            <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{tr('dashboard.predictedFlares')}</p>
+            <span style={{ fontSize: 10, color: 'var(--text-3)', fontWeight: 500 }}>{tr('dashboard.fromCycleHistory')}</span>
           </div>
           {flares.length === 0 ? (
             <div>
               <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6, marginBottom: 10 }}>
-                {predictions?.message || 'Log symptoms across 2+ cycles to unlock predictions.'}
+                {predictions?.message || tr('dashboard.flaresLocked')}
               </p>
               <Link to="/cycle" style={{ fontSize: 12, color: 'var(--accent)', fontWeight: 500, textDecoration: 'none' }}>
-                → Cycle tracker
+                {tr('dashboard.cycleTracker')}
               </Link>
             </div>
           ) : (
@@ -286,21 +290,26 @@ export default function Dashboard() {
                 <div key={p.date} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
-                      {new Date(p.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                      {new Date(p.date + 'T00:00:00').toLocaleDateString(lang, { weekday: 'short', month: 'short', day: 'numeric' })}
                     </p>
-                    <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>Cycle day {p.cycle_day + 1}</p>
+                    <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 2 }}>{tr('dashboard.cycleDay')} {p.cycle_day + 1}</p>
                   </div>
                   <div style={{
                     fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 99,
                     background: 'var(--amber-light)', color: 'var(--amber)',
                     border: '1px solid #F4C8A0',
                   }}>
-                    {p.confidence}% likely
+                    {tr('dashboard.likely', { n: p.confidence })}
                   </div>
                 </div>
               ))}
             </div>
           )}
+        </div>
+
+        {/* Citations — Guideline 1.4.1 */}
+        <div style={{ marginTop: 18 }}>
+          <Citations topics={['general', 'cycle']} />
         </div>
 
       </div>
