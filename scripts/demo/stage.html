@@ -1,0 +1,56 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; }
+  body {
+    font-family: -apple-system, 'Inter', system-ui, sans-serif; color: #1C0A12;
+    background:
+      radial-gradient(900px 700px at 8% 0%, #FFE3EE 0%, rgba(255,227,238,0) 60%),
+      radial-gradient(900px 800px at 100% 100%, #EFE6FF 0%, rgba(239,230,255,0) 55%),
+      #FBEAF2;
+    display: flex; align-items: center; justify-content: center; gap: 110px;
+  }
+  .phone {
+    width: 390px; height: 844px; flex-shrink: 0;
+    border-radius: 54px; padding: 10px; background: #1A0810;
+    box-shadow: 0 50px 110px rgba(200,63,110,0.28), 0 18px 40px rgba(28,10,18,0.25);
+  }
+  .phone iframe { width: 390px; height: 844px; border: 0; border-radius: 44px; background: #FDE8F0; display: block; }
+  .copy { width: 560px; }
+  .brand { display: flex; align-items: center; gap: 16px; margin-bottom: 56px; }
+  .logo { width: 60px; height: 60px; border-radius: 19px; background: linear-gradient(135deg, #C83F6E, #E86090); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 28px rgba(200,63,110,0.4); }
+  .brand b { font-size: 34px; letter-spacing: -0.8px; }
+  .brand span { display: block; font-size: 15px; color: #B07A90; letter-spacing: 1.6px; text-transform: uppercase; margin-top: 2px; font-weight: 600; }
+  #step { font-size: 16px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: #C83F6E; margin-bottom: 16px; }
+  #title { font-size: 54px; font-weight: 800; letter-spacing: -1.9px; line-height: 1.04; margin: 0 0 22px; }
+  #sub { font-size: 22px; line-height: 1.45; color: #6B3A4A; margin: 0; max-width: 500px; }
+  .fade { transition: opacity .35s ease, transform .35s ease; }
+  .out { opacity: 0; transform: translateY(10px); }
+  .foot { margin-top: 64px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .foot i { font-style: normal; font-size: 16px; font-weight: 600; padding: 8px 16px; border-radius: 99px; background: #fff; border: 1px solid #F0C0D5; color: #6B3A4A; }
+</style></head>
+<body>
+  <div class="phone"><iframe id="app" src="about:blank"></iframe></div>
+  <div class="copy">
+    <div class="brand">
+      <div class="logo"><svg width="30" height="30" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="white" stroke-width="1.5" opacity="0.5"/><circle cx="7" cy="7" r="2.5" fill="white"/></svg></div>
+      <div><b>Luna Health</b><span>iOS · macOS</span></div>
+    </div>
+    <div id="text" class="fade">
+      <div id="step"></div>
+      <h1 id="title"></h1>
+      <p id="sub"></p>
+    </div>
+    <div class="foot"><i>PCOS</i><i>Endometriosis</i><i>PMDD</i><i>Private by design</i><i>7 languages</i></div>
+  </div>
+  <script>
+    window.caption = async (step, title, sub) => {
+      const t = document.getElementById('text');
+      t.classList.add('out'); await new Promise(r => setTimeout(r, 350));
+      document.getElementById('step').textContent = step;
+      document.getElementById('title').textContent = title;
+      document.getElementById('sub').textContent = sub;
+      t.classList.remove('out');
+    };
+  </script>
+</body></html>
