@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X, Send } from 'lucide-react';
 
 interface Msg { role: 'user' | 'assistant'; content: string; }
@@ -84,8 +85,13 @@ function LunaFace({ talking = false, open = false }: { talking?: boolean; open?:
   );
 }
 
+import { useI18n } from '../i18n';
+
 export default function ChatWidget() {
+  const { tr } = useI18n();
   const [open, setOpen]       = useState(false);
+  // Stay out of the way while the user is filling in the log form.
+  const hideLauncher = useLocation().pathname === '/log' && !open;
   const [msgs, setMsgs]       = useState<Msg[]>([]);
   const [input, setInput]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -179,10 +185,10 @@ export default function ChatWidget() {
         }
 
         /* Positions */
-        .luna-btn   { bottom: 82px; right: 16px; }
-        .luna-panel { bottom: 156px; right: 16px; }
+        .luna-btn   { bottom: calc(80px + env(safe-area-inset-bottom)); right: 10px; scale: 0.78; transform-origin: bottom right; }
+        .luna-panel { bottom: calc(150px + env(safe-area-inset-bottom)); right: 16px; }
         @media(min-width:768px){
-          .luna-btn   { bottom: 20px; right: 24px; }
+          .luna-btn   { bottom: 20px; right: 24px; scale: 1; }
           .luna-panel { bottom: 100px; right: 24px; }
         }
       `}</style>
@@ -216,7 +222,7 @@ export default function ChatWidget() {
               </svg>
             </div>
             <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1 }}>Luna AI</p>
+              <p style={{ fontSize: 14, fontWeight: 700, color: '#fff', lineHeight: 1.1 }}>{tr('chat.title')}</p>
               <p style={{ fontSize: 10, color: 'var(--sidebar-muted)', marginTop: 1 }}>
                 {loading ? 'typing…' : 'Your health assistant'}
               </p>
@@ -281,7 +287,7 @@ export default function ChatWidget() {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } }}
-              placeholder="Ask Luna anything…"
+              placeholder={tr('chat.placeholder')}
               disabled={loading}
               style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 12, padding: '9px 12px', fontSize: 13, color: 'var(--text)', background: '#fff', fontFamily: 'inherit', outline: 'none' }}
             />
@@ -294,12 +300,14 @@ export default function ChatWidget() {
       )}
 
       {/* ── Floating character button ── */}
-      <button
+      {!hideLauncher && <button
         className="luna-btn"
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Close Luna chat' : 'Chat with Luna AI'}
         style={{
-          position: 'fixed', zIndex: 201,
+          // Closed: sits above the tab bar but below page dialogs, so it never
+          // covers a form's buttons. Open: above its own chat panel.
+          position: 'fixed', zIndex: open ? 201 : 40,
           background: 'none', border: 'none', padding: 0,
           cursor: 'pointer',
           animation: 'luna-float 3.2s ease-in-out infinite',
@@ -331,7 +339,7 @@ export default function ChatWidget() {
             background: 'var(--accent)', border: '2px solid white',
           }} />
         )}
-      </button>
+      </button>}
     </>
   );
 }

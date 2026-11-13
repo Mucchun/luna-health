@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
+<title>Luna Community · Moderation</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: #FDE8F0; color: #1C0A12; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; }
+  h1 { font-size: 22px; margin: 0 0 4px; } h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .6px; color: #B07A90; margin: 28px 0 10px; }
+  p.sub { color: #6B3A4A; margin: 0 0 18px; font-size: 14px; }
+  .card { background: #fff; border: 1px solid #F0C0D5; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+  .meta { font-size: 12px; color: #B07A90; margin-bottom: 6px; } .title { font-weight: 700; margin-bottom: 4px; }
+  .content { font-size: 14px; white-space: pre-wrap; overflow-wrap: anywhere; color: #6B3A4A; }
+  .row { display: flex; gap: 8px; margin-top: 12px; }
+  button { font: inherit; font-weight: 600; font-size: 14px; padding: 9px 14px; border-radius: 99px; border: 1px solid #F0C0D5; background: #fff; cursor: pointer; }
+  button.danger { background: #C0314A; border-color: #C0314A; color: #fff; } button.primary { background: #C83F6E; border-color: #C83F6E; color: #fff; }
+  input { font: inherit; padding: 10px 14px; border-radius: 12px; border: 1px solid #F0C0D5; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #FEEBD8; color: #A85A20; margin-left: 6px; }
+  .empty { color: #B07A90; font-size: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Community moderation</h1>
+  <p class="sub">Review reported content. Anything reported by 3 people is hidden automatically until you decide.</p>
+  <div id="login" class="card">
+    <input id="token" type="password" placeholder="Admin token" autocomplete="off">
+    <button class="primary" id="go">Open queue</button>
+    <div id="err" class="meta" style="margin-top:8px"></div>
+  </div>
+  <div id="app" hidden>
+    <h2>Reported</h2><div id="reported"></div>
+    <h2>Latest posts</h2><div id="recent"></div>
+  </div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  let token = sessionStorage.getItem('luna_admin') || '';
+  const api = (path, init = {}) => fetch('/api/community/admin/' + path, { ...init, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token } });
+
+  function card(item, reported) {
+    const el = document.createElement('div'); el.className = 'card';
+    const meta = document.createElement('div'); meta.className = 'meta';
+    meta.textContent = `${item.target_type} #${item.target_id} · ${item.anon_name} · ${item.last_reported || item.created_at} UTC` + (reported ? ` · ${item.reports} report(s)` : '');
+    if (item.hidden) { const b = document.createElement('span'); b.className = 'badge'; b.textContent = 'hidden'; meta.appendChild(b); }
+    el.appendChild(meta);
+    if (item.title) { const t = document.createElement('div'); t.className = 'title'; t.textContent = item.title; el.appendChild(t); }
+    const c = document.createElement('div'); c.className = 'content'; c.textContent = item.content; el.appendChild(c);
+    const row = document.createElement('div'); row.className = 'row';
+    const act = (label, action, cls) => { const b = document.createElement('button'); b.textContent = label; if (cls) b.className = cls;
+      b.onclick = async () => { if (action === 'remove' && !confirm('Remove this permanently?')) return;
+        await api('resolve', { method: 'POST', body: JSON.stringify({ target_type: item.target_type, target_id: item.target_id, action }) }); load(); };
+      row.appendChild(b); };
+    act('Remove', 'remove', 'danger');
+    if (reported || item.hidden) act('Keep (it is fine)', 'keep');
+    el.appendChild(row);
+    return el;
+  }
+
+  async function load() {
+    const r = await api('queue');
+    if (!r.ok) { $('err').textContent = r.status === 401 ? 'Wrong token.' : 'Could not load.'; $('login').hidden = false; $('app').hidden = true; return; }
+    sessionStorage.setItem('luna_admin', token);
+    const d = await r.json();
+    $('login').hidden = true; $('app').hidden = false;
+    for (const [id, list, rep] of [['reported', d.reported, true], ['recent', d.recent, false]]) {
+      const box = $(id); box.textContent = '';
+      if (!list.length) { const e = document.createElement('div'); e.className = 'empty'; e.textContent = 'Nothing here.'; box.appendChild(e); }
+      list.forEach(i => box.appendChild(card(i, rep)));
+    }
+  }
+  $('go').onclick = () => { token = $('token').value.trim(); load(); };
+  $('token').addEventListener('keydown', e => { if (e.key === 'Enter') $('go').click(); });
+  if (token) load();
+</script>
+</body>
+</html>

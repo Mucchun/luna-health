@@ -1,0 +1,13 @@
+{
+  "name": "luna-community-api",
+  "private": true,
+  "type": "module",
+  "description": "Shared anonymous Community backend for Luna Health (Vercel Functions + Neon Postgres). No health data is stored here.",
+  "scripts": {
+    "migrate": "node --env-file=.env.local scripts/migrate.js"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.0"
+  },
+  "engines": { "node": "22.x" }
+}

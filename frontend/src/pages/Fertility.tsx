@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Sparkles, RefreshCw, Heart, Star, AlertCircle, ChevronRight as CR } from 'lucide-react';
+import { Citations } from '../lib/references';
+import { useI18n } from '../i18n';
 
 function localToday() {
   const d = new Date();
@@ -42,6 +44,7 @@ function calcWindow(cycles: any[], profile: any): FertilityWindow | null {
 }
 
 export default function Fertility() {
+  const { tr } = useI18n();
   const [profile, setProfile]   = useState<any>(null);
   const [cycles, setCycles]     = useState<any[]>([]);
   const [view, setView]         = useState(new Date());
@@ -95,13 +98,13 @@ export default function Fertility() {
     <div style={{ maxWidth: 660, padding: '28px 24px 80px', margin: '0 auto' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
+      <div className="luna-head" style={{ marginBottom: 22 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Fertility</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Ovulation predictions & AI conception insights</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('nav.fertility')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{tr('fertility.subtitle')}</p>
         </div>
         <button onClick={runAi} disabled={aiLoading}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: aiLoading ? 'var(--border)' : 'var(--accent)', color: aiLoading ? 'var(--text-3)' : '#fff', fontSize: 12, fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer' }}>
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: aiLoading ? 'var(--border)' : 'var(--accent)', color: aiLoading ? 'var(--text-3)' : '#fff', fontSize: 13, fontWeight: 600, cursor: aiLoading ? 'not-allowed' : 'pointer' }}>
           {aiLoading
             ? <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> Analysing…</>
             : <><Sparkles size={12} /> AI Insights</>}
@@ -136,16 +139,16 @@ export default function Fertility() {
             },
           ].map(({ label, value, sub, color }) => (
             <div key={label} style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '14px 16px' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{label}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>{label}</p>
               <p style={{ fontSize: 22, fontWeight: 800, color, letterSpacing: '-0.8px', lineHeight: 1 }}>{value}</p>
-              <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 4 }}>{sub}</p>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 4 }}>{sub}</p>
             </div>
           ))}
         </div>
       ) : (
         <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '18px 20px', marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
           <AlertCircle size={16} style={{ color: 'var(--amber)', flexShrink: 0 }} />
-          <p style={{ fontSize: 13, color: 'var(--text-2)' }}>Log at least one period in Cycle Tracker to see predictions.</p>
+          <p style={{ fontSize: 14, color: 'var(--text-2)' }}>Log at least one period in Cycle Tracker to see predictions.</p>
         </div>
       )}
 
@@ -165,7 +168,7 @@ export default function Fertility() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
           {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.5px', paddingBottom: 4 }}>{d}</div>
+            <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.5px', paddingBottom: 4 }}>{d}</div>
           ))}
         </div>
 
@@ -183,7 +186,7 @@ export default function Fertility() {
             return (
               <div key={day} title={ovulation ? 'Peak fertility / ovulation' : fertile ? 'Fertile window' : period ? 'Period day' : nextP ? 'Predicted period' : ''}
                 style={{
-                  height: 38, borderRadius: 10, fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+                  height: 38, borderRadius: 10, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
                   fontWeight: isToday ? 700 : 400,
                   background: ovulation
                     ? 'linear-gradient(135deg, #2D7A56, #1A5C3E)'
@@ -225,7 +228,7 @@ export default function Fertility() {
             { bg: '#D1F5E4', label: 'Fertile window', border: '#A0DBC0' },
             { bg: 'var(--accent-light)', label: 'Predicted period', border: 'var(--accent-border)' },
           ].map(({ bg, label, border }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-3)' }}>
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-3)' }}>
               <span style={{ width: 13, height: 13, borderRadius: 4, display: 'inline-block', background: bg, border: border ? `1.5px solid ${border}` : 'none', flexShrink: 0 }} />
               {label}
             </div>
@@ -236,7 +239,7 @@ export default function Fertility() {
         {profile?.conditions?.includes('PCOS') && (
           <div style={{ marginTop: 14, padding: '10px 14px', background: '#F0EBFF', borderRadius: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
             <AlertCircle size={13} style={{ color: '#7B52B8', flexShrink: 0, marginTop: 2 }} />
-            <p style={{ fontSize: 11, color: '#7B52B8', lineHeight: 1.55 }}>
+            <p style={{ fontSize: 12, color: '#7B52B8', lineHeight: 1.55 }}>
               PCOS can cause irregular cycles. Ovulation predictions are estimates — consider LH strips for more accuracy.
             </p>
           </div>
@@ -246,7 +249,7 @@ export default function Fertility() {
       {/* AI Result */}
       {aiError && (
         <div style={{ background: '#fff', border: '1px solid var(--accent-border)', borderRadius: 16, padding: '14px 18px', marginBottom: 14 }}>
-          <p style={{ fontSize: 13, color: 'var(--amber)' }}>{aiError}</p>
+          <p style={{ fontSize: 14, color: 'var(--amber)' }}>{aiError}</p>
         </div>
       )}
 
@@ -257,25 +260,25 @@ export default function Fertility() {
           <div style={{ background: 'linear-gradient(135deg, #1A0810, #2E1030)', borderRadius: 22, padding: '22px 24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
               <Heart size={13} style={{ color: '#FFAEC8' }} fill="#FFAEC8" />
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#FFAEC8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>AI Fertility Summary</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FFAEC8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{tr('fertility.aiSummary')}</p>
             </div>
             <p style={{ fontSize: 14, color: '#F9D8E6', lineHeight: 1.7, marginBottom: 14 }}>{a.summary}</p>
-            <p style={{ fontSize: 12, color: 'rgba(249,216,230,0.7)', lineHeight: 1.6 }}>{a.cycle_assessment}</p>
+            <p style={{ fontSize: 13, color: 'rgba(249,216,230,0.7)', lineHeight: 1.6 }}>{a.cycle_assessment}</p>
           </div>
 
           {/* Condition impacts */}
           {a.condition_impacts?.length > 0 && (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
               <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>How your conditions affect fertility</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('fertility.conditionsAffect')}</p>
               </div>
               {a.condition_impacts.map((ci: any, i: number) => (
                 <div key={i} style={{ padding: '14px 20px', borderBottom: i < a.condition_impacts.length - 1 ? '1px solid var(--border)' : 'none' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 99, background: (COND_COLORS[ci.condition] || 'var(--accent)') + '18', color: COND_COLORS[ci.condition] || 'var(--accent)' }}>{ci.condition}</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 9px', borderRadius: 99, background: (COND_COLORS[ci.condition] || 'var(--accent)') + '18', color: COND_COLORS[ci.condition] || 'var(--accent)' }}>{ci.condition}</span>
                   </div>
-                  <p style={{ fontSize: 12, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 5 }}>{ci.impact}</p>
-                  <p style={{ fontSize: 12, color: '#2D7A56', fontWeight: 500 }}>✓ {ci.positive_note}</p>
+                  <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 5 }}>{ci.impact}</p>
+                  <p style={{ fontSize: 13, color: '#2D7A56', fontWeight: 500 }}>✓ {ci.positive_note}</p>
                 </div>
               ))}
             </div>
@@ -285,13 +288,13 @@ export default function Fertility() {
           {a.conception_tips?.length > 0 && (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
               <div style={{ padding: '13px 20px', borderBottom: '1px solid var(--border)' }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Conception tips for you</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('fertility.conceptionTips')}</p>
               </div>
               <div style={{ padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {a.conception_tips.map((tip: string, i: number) => (
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 12px', background: '#D1F5E422', borderRadius: 12, border: '1px solid #D1F5E4' }}>
                     <Star size={12} style={{ color: '#2D7A56', flexShrink: 0, marginTop: 2 }} fill="#2D7A56" />
-                    <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6 }}>{tip}</p>
+                    <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{tip}</p>
                   </div>
                 ))}
               </div>
@@ -301,21 +304,21 @@ export default function Fertility() {
           {/* Lab fertility notes */}
           {a.lab_fertility_notes && (
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 20px' }}>
-              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Lab Insights</p>
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.lab_fertility_notes}</p>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('fertility.labInsights')}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.lab_fertility_notes}</p>
             </div>
           )}
 
           {/* Tracking suggestions + lifestyle in 2 cols */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="luna-cols-2" style={{ gap: 12 }}>
             {a.tracking_suggestions?.length > 0 && (
               <div style={{ background: '#F0EBFF', border: '1px solid #DDD6FE', borderRadius: 16, padding: '14px 16px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#7B52B8', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>Track to improve accuracy</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#7B52B8', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>{tr('fertility.trackToImprove')}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {a.tracking_suggestions.map((s: string, i: number) => (
                     <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
                       <CR size={11} style={{ color: '#7B52B8', flexShrink: 0, marginTop: 2 }} />
-                      <p style={{ fontSize: 11, color: '#4C2D8F', lineHeight: 1.5 }}>{s}</p>
+                      <p style={{ fontSize: 12, color: '#4C2D8F', lineHeight: 1.5 }}>{s}</p>
                     </div>
                   ))}
                 </div>
@@ -323,17 +326,17 @@ export default function Fertility() {
             )}
             {a.doctor_questions?.length > 0 && (
               <div style={{ background: '#DBEAFE22', border: '1px solid #DBEAFE', borderRadius: 16, padding: '14px 16px' }}>
-                <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>Ask your doctor</p>
+                <p style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>{tr('fertility.askDoctor')}</p>
                 <ol style={{ paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                   {a.doctor_questions.map((q: string, i: number) => (
-                    <li key={i} style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
+                    <li key={i} style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
                   ))}
                 </ol>
               </div>
             )}
           </div>
 
-          <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6, fontStyle: 'italic', padding: '2px 4px' }}>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6, fontStyle: 'italic', padding: '2px 4px' }}>
             Predictions are estimates based on average cycle data. Consult a gynaecologist or fertility specialist for personalised medical advice.
           </p>
         </div>
@@ -345,17 +348,22 @@ export default function Fertility() {
           <div style={{ width: 52, height: 52, borderRadius: 16, background: 'linear-gradient(135deg, #D1F5E4, var(--accent-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Heart size={22} style={{ color: 'var(--accent)' }} />
           </div>
-          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>AI Fertility Insights</p>
-          <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.65, maxWidth: 360, margin: '0 auto 20px' }}>
-            Get personalised fertility analysis based on your cycle history, conditions, symptoms, and lab values.
+          <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{tr('fertility.aiInsightsTitle')}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.65, maxWidth: 360, margin: '0 auto 20px' }}>
+            {tr('fertility.aiInsightsDesc')}
           </p>
           <button onClick={runAi}
-            style={{ padding: '11px 26px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
+            style={{ padding: '11px 26px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
             <Sparkles size={13} style={{ marginRight: 7, verticalAlign: 'middle' }} />
-            Get Fertility Insights
+            {tr('fertility.getInsights')}
           </button>
         </div>
       )}
+
+      {/* Citations — Guideline 1.4.1 */}
+      <div style={{ marginTop: 14 }}>
+        <Citations topics={['fertility', 'cycle']} />
+      </div>
     </div>
   );
 }

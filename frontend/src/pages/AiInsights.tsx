@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, RefreshCw, TrendingUp, TrendingDown, Minus, AlertCircle, Stethoscope, Lightbulb, Zap, Heart, ChevronRight } from 'lucide-react';
+import { Citations } from '../lib/references';
+import { useI18n } from '../i18n';
 
 interface Analysis {
   summary: string;
@@ -37,7 +39,7 @@ function Section({ icon: Icon, color, title, children }: { icon: any; color: str
         <div style={{ width: 28, height: 28, borderRadius: 8, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon size={14} style={{ color }} />
         </div>
-        <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.1px' }}>{title}</p>
+        <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.1px' }}>{title}</p>
       </div>
       <div style={{ padding: '16px 20px' }}>{children}</div>
     </div>
@@ -50,7 +52,7 @@ function BulletList({ items, color = 'var(--accent)' }: { items: string[]; color
       {items.map((item, i) => (
         <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <div style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 6 }} />
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6 }}>{item}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.6 }}>{item}</p>
         </div>
       ))}
     </div>
@@ -69,6 +71,7 @@ function Shimmer() {
 }
 
 export default function AiInsights() {
+  const { tr } = useI18n();
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -113,48 +116,33 @@ export default function AiInsights() {
     <div style={{ maxWidth: 680, padding: '28px 24px 80px', margin: '0 auto' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
+      <div className="luna-head" style={{ marginBottom: 22 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>AI Health Insights</h1>
-            <span style={{ fontSize: 10, fontWeight: 700, background: 'linear-gradient(135deg, #f55036, #ff8c00)', color: '#fff', padding: '2px 8px', borderRadius: 99, letterSpacing: '0.3px' }}>GROQ</span>
+            <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.5px' }} className="luna-grad-text">{tr('nav.ai')}</h1>
+            <span className="luna-shimmer" style={{ fontSize: 11, fontWeight: 800, border: '1px solid var(--accent-border)', padding: '2px 9px', borderRadius: 99, letterSpacing: '0.4px' }}>ON-DEVICE</span>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
+          <p style={{ fontSize: 13, color: 'var(--text-3)' }}>
             {generatedAt ? `Last updated ${generatedAt} · ${result?.data_points} logs analysed` : 'Personalised analysis of your symptom patterns'}
           </p>
         </div>
         <button
           onClick={analyze}
           disabled={loading}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: loading ? 'var(--border)' : 'var(--accent)', color: loading ? 'var(--text-3)' : '#fff', fontSize: 12, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', flexShrink: 0, transition: 'all 0.1s' }}
+          className={loading ? '' : 'luna-btn-grad'}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '9px 17px', borderRadius: 99, border: 'none', background: loading ? 'var(--border)' : undefined, color: loading ? 'var(--text-3)' : '#fff', fontSize: 13, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', flexShrink: 0 }}
         >
           {loading
             ? <><RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} /> Analysing…</>
-            : <><Sparkles size={12} /> {result ? 'Re-analyse' : 'Analyse my health'}</>}
+            : <><Sparkles size={12} /> {result ? tr('ai.reanalyse') : tr('ai.analyseCta')}</>}
           <style>{`@keyframes spin { to { transform: rotate(360deg) } }`}</style>
         </button>
       </div>
 
-      {/* No API key state */}
-      {noKey && (
-        <div style={{ background: '#fff', border: '1.5px solid var(--amber)', borderRadius: 18, padding: '20px 22px', marginBottom: 16 }}>
-          <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--amber)', marginBottom: 6 }}>API key not configured</p>
-          <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.6, marginBottom: 12 }}>
-            To enable AI analysis, add your free Groq API key as an environment variable and restart the backend:
-          </p>
-          <code style={{ display: 'block', background: 'var(--bg)', borderRadius: 10, padding: '10px 14px', fontSize: 12, color: 'var(--text)', fontFamily: 'monospace' }}>
-            GROQ_API_KEY=gsk_... node server.js
-          </code>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 10 }}>
-            Get your free key at <span style={{ color: 'var(--accent)', fontWeight: 600 }}>console.groq.com</span>
-          </p>
-        </div>
-      )}
-
       {/* General error */}
       {error && !noKey && (
         <div style={{ background: 'var(--red-light)', border: '1px solid var(--accent-border)', borderRadius: 14, padding: '12px 16px', marginBottom: 14 }}>
-          <p style={{ fontSize: 13, color: 'var(--red)' }}>{error}</p>
+          <p style={{ fontSize: 14, color: 'var(--red)' }}>{error}</p>
         </div>
       )}
 
@@ -164,9 +152,9 @@ export default function AiInsights() {
           <div style={{ width: 56, height: 56, borderRadius: 18, background: 'linear-gradient(135deg, var(--accent-light), var(--purple-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
             <Sparkles size={24} style={{ color: 'var(--accent)' }} />
           </div>
-          <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>Your personal health analyst</p>
-          <p style={{ fontSize: 13, color: 'var(--text-3)', lineHeight: 1.65, maxWidth: 380, margin: '0 auto 24px' }}>
-            Claude analyses your symptom logs, period patterns, triggers, and labs to give you personalised insights — not generic advice.
+          <p style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{tr('ai.analystTitle')}</p>
+          <p style={{ fontSize: 14, color: 'var(--text-3)', lineHeight: 1.65, maxWidth: 380, margin: '0 auto 24px' }}>
+            Luna analyses your symptom logs, period patterns, triggers, and labs entirely on your device to give you personalised insights — not generic advice. Nothing is sent to any server or third-party AI service.
           </p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, maxWidth: 400, margin: '0 auto 28px', textAlign: 'left' }}>
             {[
@@ -177,15 +165,15 @@ export default function AiInsights() {
             ].map(({ icon: Icon, label }) => (
               <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px', background: 'var(--bg)', borderRadius: 12 }}>
                 <Icon size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                <p style={{ fontSize: 12, color: 'var(--text-2)' }}>{label}</p>
+                <p style={{ fontSize: 13, color: 'var(--text-2)' }}>{label}</p>
               </div>
             ))}
           </div>
           <button onClick={analyze} style={{ padding: '12px 28px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 700, cursor: 'pointer' }}>
             <Sparkles size={13} style={{ marginRight: 7, verticalAlign: 'middle' }} />
-            Analyse my health
+            {tr('ai.analyseCta')}
           </button>
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 12 }}>Needs at least a few symptom logs to work</p>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 12 }}>{tr('ai.needsLogs')}</p>
         </div>
       )}
 
@@ -197,8 +185,8 @@ export default function AiInsights() {
               <Sparkles size={15} style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>Analysing your health data…</p>
-              <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Claude is reading your logs, patterns & triggers</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>{tr('ai.analysing')}</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Reading your logs, patterns &amp; triggers on your device</p>
             </div>
           </div>
           <Shimmer />
@@ -213,27 +201,27 @@ export default function AiInsights() {
           <div style={{ background: 'linear-gradient(135deg, #1A0810 0%, #2E1030 100%)', borderRadius: 22, padding: '24px 26px', color: '#fff' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
               <Sparkles size={13} style={{ color: '#FFAEC8' }} />
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#FFAEC8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>AI Summary</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: '#FFAEC8', textTransform: 'uppercase', letterSpacing: '0.8px' }}>{tr('ai.summary')}</p>
             </div>
             <p style={{ fontSize: 15, lineHeight: 1.7, color: '#F9D8E6', marginBottom: 18 }}>{a.summary}</p>
             {trend && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 14px', borderRadius: 99, background: trend.bg }}>
                 <TrendIcon size={13} style={{ color: trend.color }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: trend.color }}>{trend.label}</span>
-                <span style={{ fontSize: 11, color: trend.color, opacity: 0.8 }}>· {a.trend_explanation}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: trend.color }}>{trend.label}</span>
+                <span style={{ fontSize: 12, color: trend.color, opacity: 0.8 }}>· {a.trend_explanation}</span>
               </div>
             )}
           </div>
 
           {/* Impactful symptom + condition spotlight */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div className="luna-cols-2" style={{ gap: 12 }}>
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 18px' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Top symptom</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('ai.topSymptom')}</p>
               <p style={{ fontSize: 17, fontWeight: 800, color: 'var(--accent)', letterSpacing: '-0.3px', lineHeight: 1.2 }}>{a.most_impactful_symptom}</p>
             </div>
             <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 18, padding: '16px 18px' }}>
-              <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>Condition focus</p>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4 }}>{a.condition_note}</p>
+              <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('ai.conditionFocus')}</p>
+              <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)', lineHeight: 1.4 }}>{a.condition_note}</p>
             </div>
           </div>
 
@@ -254,7 +242,7 @@ export default function AiInsights() {
           {/* Cycle insight */}
           {a.cycle_insight && (
             <Section icon={Heart} color="#7B52B8" title="Period & Cycle">
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.cycle_insight}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.cycle_insight}</p>
             </Section>
           )}
 
@@ -265,7 +253,7 @@ export default function AiInsights() {
                 {a.recommendations.map((rec, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: 'var(--sage-light)', borderRadius: 12 }}>
                     <ChevronRight size={14} style={{ color: 'var(--sage)', flexShrink: 0, marginTop: 2 }} />
-                    <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{rec}</p>
+                    <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>{rec}</p>
                   </div>
                 ))}
               </div>
@@ -275,22 +263,25 @@ export default function AiInsights() {
           {/* Doctor questions */}
           {a.doctor_questions.length > 0 && (
             <Section icon={Stethoscope} color="#2563EB" title="Questions to Ask Your Doctor">
-              <p style={{ fontSize: 11, color: 'var(--text-3)', marginBottom: 12 }}>These are specific to your data — bring this list to your next appointment.</p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 12 }}>These are specific to your data — bring this list to your next appointment.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {a.doctor_questions.map((q, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '10px 12px', background: '#DBEAFE22', border: '1px solid #DBEAFE', borderRadius: 12 }}>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', flexShrink: 0, paddingTop: 1 }}>{i + 1}.</span>
-                    <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }}>{q}</p>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: '#2563EB', flexShrink: 0, paddingTop: 1 }}>{i + 1}.</span>
+                    <p style={{ fontSize: 14, color: 'var(--text)', lineHeight: 1.6 }}>{q}</p>
                   </div>
                 ))}
               </div>
             </Section>
           )}
 
+          {/* Citations — Guideline 1.4.1 */}
+          <Citations topics={['general', 'cycle']} />
+
           {/* Disclaimer */}
           <div style={{ background: 'var(--bg)', borderRadius: 14, padding: '13px 16px' }}>
-            <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.6 }}>
-              This analysis is generated by Claude AI from your self-reported data. It is for informational purposes only and is not medical advice. Always consult a qualified healthcare provider for diagnosis and treatment decisions.
+            <p style={{ fontSize: 12, color: 'var(--text-3)', lineHeight: 1.6 }}>
+              This analysis is generated on your device from your self-reported data. It is for informational purposes only and is not medical advice. Always consult a qualified healthcare provider for diagnosis and treatment decisions. See “Sources &amp; references” above for the health information this app draws on.
             </p>
           </div>
         </div>

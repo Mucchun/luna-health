@@ -14,11 +14,14 @@ const inp: React.CSSProperties = {
   fontFamily: 'inherit', outline: 'none',
 };
 const lbl: React.CSSProperties = {
-  fontSize: 11, fontWeight: 700, color: 'var(--text-3)', display: 'block',
+  fontSize: 12, fontWeight: 700, color: 'var(--text-3)', display: 'block',
   marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px',
 };
 
+import { useI18n } from '../i18n';
+
 export default function CycleTracker() {
+  const { tr } = useI18n();
   const [cycles, setCycles] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [view, setView] = useState(new Date());
@@ -110,14 +113,14 @@ export default function CycleTracker() {
     <div style={{ maxWidth: 620, padding: '28px 24px', margin: '0 auto' }}>
 
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 22 }}>
+      <div className="luna-head" style={{ marginBottom: 22 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>Cycle Tracker</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Tap any day on the calendar to log a period</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.cycleTracker')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{tr('cycle.tapDayLog')}</p>
         </div>
         <button
           onClick={() => openFor(today)}
-          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+          style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
         >
           <Plus size={13} /> Log Period
         </button>
@@ -141,7 +144,7 @@ export default function CycleTracker() {
         {/* Day-of-week headers */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 10, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.5px', paddingBottom: 4 }}>{d}</div>
+            <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-3)', letterSpacing: '0.5px', paddingBottom: 4 }}>{d}</div>
           ))}
         </div>
 
@@ -161,7 +164,7 @@ export default function CycleTracker() {
                 onClick={() => openFor(ds)}
                 title={period ? 'Period day (tap to edit)' : 'Tap to log period starting here'}
                 style={{
-                  height: 38, borderRadius: 10, fontSize: 13, border: 'none',
+                  height: 38, borderRadius: 10, fontSize: 14, border: 'none',
                   cursor: 'pointer', transition: 'all 0.1s',
                   fontWeight: isToday ? 700 : 400,
                   background: period
@@ -189,21 +192,21 @@ export default function CycleTracker() {
             { bg: 'var(--accent-light)', border: 'var(--accent-border)', label: 'Predicted' },
             { bg: 'var(--bg-2)', outline: 'var(--accent)', label: 'Today' },
           ].map(({ bg, border, outline, label }) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--text-3)' }}>
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text-3)' }}>
               <span style={{ width: 12, height: 12, borderRadius: 4, display: 'inline-block', background: bg, border: border ? `1.5px solid ${border}` : outline ? `2px solid ${outline}` : 'none', flexShrink: 0 }} />
               {label}
             </div>
           ))}
-          <p style={{ fontSize: 11, color: 'var(--text-3)', marginLeft: 'auto', fontStyle: 'italic' }}>Tap any day to log</p>
+          <p style={{ fontSize: 12, color: 'var(--text-3)', marginLeft: 'auto', fontStyle: 'italic' }}>{tr('cycle.tapToLog')}</p>
         </div>
       </div>
 
       {/* Logged cycles */}
       <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden' }}>
         <div style={{ padding: '14px 22px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Logged Periods</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('cycle.loggedPeriods')}</p>
           {predictedStart && (
-            <p style={{ fontSize: 12 }}>
+            <p style={{ fontSize: 13 }}>
               Next: <strong style={{ color: 'var(--accent)' }}>
                 {new Date(predictedStart + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
               </strong>
@@ -213,8 +216,8 @@ export default function CycleTracker() {
         <div style={{ padding: '0 22px' }}>
           {cycles.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '28px 0' }}>
-              <p style={{ fontSize: 13, color: 'var(--text-3)' }}>No periods logged yet</p>
-              <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>Tap a day on the calendar above to get started</p>
+              <p style={{ fontSize: 14, color: 'var(--text-3)' }}>{tr('cycle.noPeriods')}</p>
+              <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{tr('cycle.tapAbove')}</p>
             </div>
           ) : cycles.slice(0, 8).map((c, i) => {
             const dur = c.end_date
@@ -223,10 +226,10 @@ export default function CycleTracker() {
             return (
               <div key={c.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < Math.min(cycles.length, 8) - 1 ? '1px solid var(--border)' : 'none', gap: 12 }}>
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>
+                  <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text)' }}>
                     {new Date(c.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                   </p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
                     {dur ? `${dur} day${dur !== 1 ? 's' : ''}` : 'End date not set'}
                     {i === 0 && <span style={{ marginLeft: 8, color: 'var(--accent)', fontWeight: 600 }}>← Most recent</span>}
                     {c.notes && <span style={{ marginLeft: 6 }}>· {c.notes}</span>}
@@ -254,7 +257,7 @@ export default function CycleTracker() {
         >
           <div style={{ background: '#fff', borderRadius: 24, width: '100%', maxWidth: 400, padding: 26, boxShadow: '0 24px 60px rgba(0,0,0,0.15)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px' }}>Log Period</h3>
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.4px' }}>{tr('cycle.logPeriod')}</h3>
               <button onClick={() => setShowForm(false)} style={{ cursor: 'pointer', border: 'none', background: 'var(--border)', borderRadius: 99, padding: '5px 6px', color: 'var(--text-2)', display: 'flex' }}>
                 <X size={14} />
               </button>
@@ -262,7 +265,7 @@ export default function CycleTracker() {
 
             <form onSubmit={handleAdd} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <label style={lbl}>Period started <span style={{ color: 'var(--accent)' }}>*</span></label>
+                <label style={lbl}>{tr('cycle.periodStarted')} <span style={{ color: 'var(--accent)' }}>*</span></label>
                 <input
                   type="date"
                   required
@@ -273,7 +276,7 @@ export default function CycleTracker() {
                 />
               </div>
               <div>
-                <label style={lbl}>Period ended <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-3)' }}>(optional)</span></label>
+                <label style={lbl}>{tr('cycle.periodEnded')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-3)' }}>({tr('common.optional')})</span></label>
                 <input
                   type="date"
                   value={form.end_date}
@@ -284,12 +287,12 @@ export default function CycleTracker() {
                 />
               </div>
               <div>
-                <label style={lbl}>Notes <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-3)' }}>(optional)</span></label>
+                <label style={lbl}>{tr('log.notes')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0, color: 'var(--text-3)' }}>({tr('common.optional')})</span></label>
                 <input
                   type="text"
                   value={form.notes}
                   onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                  placeholder="Flow, colour, anything notable…"
+                  placeholder={tr('cycle.notesPlaceholder')}
                   style={inp}
                 />
               </div>

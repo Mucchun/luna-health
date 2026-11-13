@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <!-- maximum-scale=1 + user-scalable=no stop iOS from auto-zooming when a
+         text field is focused (which, in a webview, makes the whole UI "grow"
+         and never shrink back). Appropriate for a native app shell. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Luna Health</title>
   </head>
   <body>
     <div id="root"></div>

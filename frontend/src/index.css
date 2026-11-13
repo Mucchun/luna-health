@@ -39,15 +39,28 @@
   --sidebar-active-bg: rgba(200, 63, 110, 0.18);
   --sidebar-active-text: #FFAEC8;
   --sidebar-border: #2E1020;
+
+  /* Fancy gradients & elevation */
+  --grad-accent: linear-gradient(135deg, #C83F6E 0%, #E86090 100%);
+  --grad-accent-soft: linear-gradient(135deg, #E86090 0%, #7B52B8 120%);
+  --grad-app-bg: radial-gradient(1100px 620px at 12% -8%, #FFE3EE 0%, rgba(255,227,238,0) 55%),
+                 radial-gradient(1000px 680px at 108% 4%, #EFE6FF 0%, rgba(239,230,255,0) 52%),
+                 linear-gradient(180deg, #FDE8F0 0%, #FBEFF5 40%, #F7EAF6 100%);
+  --grad-sidebar: linear-gradient(185deg, #240D18 0%, #1A0810 55%, #150610 100%);
+  --shadow-sm: 0 1px 2px rgba(28,10,18,0.05), 0 2px 8px rgba(200,63,110,0.05);
+  --shadow-md: 0 6px 22px rgba(200,63,110,0.10), 0 2px 6px rgba(28,10,18,0.05);
+  --shadow-lg: 0 18px 50px rgba(200,63,110,0.16), 0 6px 16px rgba(28,10,18,0.07);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   background: var(--bg);
+  background-image: var(--grad-app-bg);
+  background-attachment: fixed;
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Inter', system-ui, sans-serif;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   /* iOS safe area support */
@@ -63,21 +76,72 @@ body {
 /* iOS tap highlight removal */
 * { -webkit-tap-highlight-color: transparent; }
 
-/* Active state feedback for buttons (iOS doesn't have hover) */
-button:active { opacity: 0.75; }
-a:active      { opacity: 0.75; }
+/* Native app feel: no long-press callout menu, no accidental text selection or
+   image drag on taps. Text stays selectable inside real inputs so users can edit
+   what they type. */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Momentum scrolling like native lists */
+html, body, #root { -webkit-overflow-scrolling: touch; }
+
+/* Prevent the whole-page rubber-band bounce (feels web-y); inner scroll areas
+   still scroll normally. */
+html, body { overscroll-behavior-y: none; }
+
+/* Active state feedback for buttons (iOS doesn't have hover) — a subtle press
+   scale + dim reads as a native button press. */
+button:active, a:active, [role="button"]:active {
+  opacity: 0.75;
+  transform: scale(0.97);
+}
+button, a, [role="button"] { transition: transform 0.08s ease, opacity 0.08s ease; }
 
 #root { min-height: 100vh; min-height: 100dvh; }
 
-/* Bottom nav needs safe area padding on devices with home indicator */
-.mobile-bottom-nav {
-  padding-bottom: env(safe-area-inset-bottom);
-}
 
 /* Page content should account for bottom nav + home indicator */
 .page-content-mobile {
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
 }
+
+/* Dashboard bento grid. On phones a fixed 4-column grid overflows and clips the
+   cards (App Review "UI too big / weird"), so collapse to 2 columns on mobile
+   and only expand to the 4-column bento on wider screens. Column spans adapt:
+   .b2/.b3 fill the row on mobile and take 2/3 columns on desktop; .b1m is a
+   single-column card that goes full-width on mobile. */
+.dash-bento { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.dash-bento .b2 { grid-column: span 2; }
+.dash-bento .b3 { grid-column: span 2; }
+.dash-bento .b1m { grid-column: span 2; }
+.dash-bento .dash-stats { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 380px) { .dash-bento .b3 > div { flex-wrap: wrap; } }
+@media (min-width: 768px) {
+  .dash-bento .dash-stats { grid-column: span 1; grid-template-columns: 1fr; }
+  .dash-bento { grid-template-columns: repeat(4, 1fr); }
+  .dash-bento .b3 { grid-column: span 3; }
+  .dash-bento .b1m { grid-column: span 1; }
+}
+
+/* macOS desktop (Electron) hidden-inset title bar: when the sidebar is hidden
+   (narrow window) the main content runs to the top-left under the floating
+   traffic-light buttons, so reserve space to avoid overlapping text. On wide
+   windows the sidebar carries the inset instead (see App.tsx). Interactive
+   controls opt out of the window-drag region. */
+.is-electron .luna-main { padding-top: 28px; }
+@media (min-width: 768px) { .is-electron .luna-main { padding-top: 0; } }
+.is-electron button,
+.is-electron a,
+.is-electron input,
+.is-electron textarea,
+.is-electron select { -webkit-app-region: no-drag; }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -97,3 +161,219 @@ input:focus, select:focus, textarea:focus {
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 3px rgba(200, 63, 110, 0.1);
 }
+
+/* ── Fancy UI helpers ─────────────────────────────────────────────────────── */
+
+/* Route content gently fades + rises in */
+@keyframes luna-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.luna-page { animation: luna-rise 0.34s cubic-bezier(0.22, 1, 0.36, 1); }
+
+/* Mobile nav drawer slide-in */
+@keyframes luna-slide-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Elevated card with a lift-on-hover */
+.luna-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s, border-color 0.18s;
+}
+.luna-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--accent-border);
+}
+
+/* Gradient primary button */
+.luna-btn-grad {
+  background: var(--grad-accent);
+  color: #fff;
+  border: none;
+  box-shadow: 0 6px 18px rgba(200,63,110,0.30);
+  transition: transform 0.12s, box-shadow 0.18s, filter 0.18s;
+}
+.luna-btn-grad:hover { transform: translateY(-1px); box-shadow: 0 10px 26px rgba(200,63,110,0.42); filter: saturate(1.05); }
+.luna-btn-grad:active { transform: translateY(0); }
+
+/* Gradient text accent */
+.luna-grad-text {
+  background: var(--grad-accent-soft);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Subtle shimmer for "AI"/premium chips */
+@keyframes luna-shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.luna-shimmer {
+  background: linear-gradient(100deg, #C83F6E 20%, #E86090 40%, #7B52B8 60%, #C83F6E 80%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  animation: luna-shimmer 4.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-page, .luna-shimmer { animation: none; }
+  .luna-card, .luna-btn-grad { transition: none; }
+}
+
+/* ── App shell ────────────────────────────────────────────────────────────── */
+
+/* Main column leaves room for the mobile tab bar + home indicator. */
+.luna-main { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .luna-main { padding-bottom: 0; } }
+
+/* Tighter page gutters on phones so cards get the width (pages set their own
+   inline padding, hence !important). */
+@media (max-width: 767px) {
+  .luna-page > div { padding-left: 16px !important; padding-right: 16px !important; padding-top: 20px !important; }
+}
+
+/* Mobile tab bar — light, frosted, with a raised Log button in the middle.
+   Display is controlled here (not inline) so it reliably hides on desktop. */
+.luna-tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  display: flex; align-items: stretch;
+  padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+  background: rgba(255, 249, 251, 0.88);
+  -webkit-backdrop-filter: saturate(1.6) blur(18px);
+  backdrop-filter: saturate(1.6) blur(18px);
+  border-top: 1px solid var(--border);
+  box-shadow: 0 -6px 24px rgba(200, 63, 110, 0.07);
+}
+@media (min-width: 768px) { .luna-tabbar, .luna-sheet-root { display: none !important; } }
+
+.luna-tab {
+  flex: 1; min-width: 0; min-height: 50px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border: none; background: none; cursor: pointer; text-decoration: none;
+  font-family: inherit; font-size: 10.5px; font-weight: 600; letter-spacing: 0.1px;
+  color: var(--text-3); border-radius: 14px;
+}
+.luna-tab span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 2px; }
+.luna-tab.active { color: var(--accent); }
+.luna-tab.active svg { stroke-width: 2.2; }
+
+.luna-tab-log { flex: 1; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+.luna-tab-log > div {
+  width: 54px; height: 54px; margin-top: -22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--grad-accent); color: #fff;
+  border: 4px solid #FFF9FB;
+  box-shadow: 0 8px 20px rgba(200, 63, 110, 0.38);
+}
+
+/* "More" bottom sheet */
+@keyframes luna-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes luna-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.luna-sheet-root { position: fixed; inset: 0; z-index: 250; }
+.luna-sheet-scrim { position: absolute; inset: 0; background: rgba(28, 10, 18, 0.42); animation: luna-fade 0.2s ease; }
+.luna-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: 86dvh; overflow-y: auto;
+  background: #FFF9FB; border-radius: 28px 28px 0 0;
+  padding: 10px 18px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: 0 -18px 50px rgba(28, 10, 18, 0.22);
+  animation: luna-sheet-up 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.luna-sheet-grabber { width: 38px; height: 4px; border-radius: 99px; background: var(--border-strong); margin: 0 auto 14px; opacity: 0.7; }
+.luna-sheet-group { font-size: 11px; font-weight: 700; letter-spacing: 0.7px; text-transform: uppercase; color: var(--text-3); margin: 16px 4px 8px; }
+.luna-sheet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.luna-sheet-tile {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 12px 4px 10px; border-radius: 18px; text-decoration: none; text-align: center;
+  background: #fff; border: 1px solid var(--border); min-width: 0; overflow-wrap: anywhere;
+  font-size: 12px; font-weight: 600; line-height: 1.2; color: var(--text);
+}
+.luna-sheet-tile.active { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
+.luna-sheet-tile i {
+  width: 40px; height: 40px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+}
+
+/* Desktop sidebar */
+.luna-side-group { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #7A4A60; margin: 14px 10px 5px; }
+.luna-side-link {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px;
+  font-size: 13.5px; color: var(--sidebar-muted); text-decoration: none;
+  transition: background 0.16s, color 0.16s;
+}
+.luna-side-link:hover { background: rgba(255, 255, 255, 0.05); color: var(--sidebar-text); }
+.luna-side-link.active {
+  font-weight: 600; color: var(--sidebar-active-text);
+  background: linear-gradient(90deg, rgba(200,63,110,0.26), rgba(123,82,184,0.12));
+  box-shadow: inset 3px 0 0 0 #FFAEC8;
+}
+
+/* ── Layout helpers shared by pages ───────────────────────────────────────── */
+
+/* Page header: title block + action. Wraps instead of crushing the title. */
+.luna-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.luna-head > :first-child { flex: 1 1 200px; min-width: 0; }
+
+/* Column grids that stack on phones. */
+.luna-cols-2, .luna-cols-3 { display: grid; grid-template-columns: 1fr; }
+@media (min-width: 640px) {
+  .luna-cols-2 { grid-template-columns: 1fr 1fr; }
+  .luna-cols-3 { grid-template-columns: repeat(3, 1fr); }
+}
+/* Label/value rows (supplements, meal plans) stack on phones. */
+.luna-row-3 { display: grid; grid-template-columns: 1fr; gap: 4px; }
+.luna-row-2 { display: grid; grid-template-columns: 1fr; gap: 6px; }
+@media (min-width: 640px) {
+  .luna-row-3 { grid-template-columns: 160px 110px 1fr; gap: 12px; }
+  .luna-row-2 { grid-template-columns: 90px 1fr; gap: 16px; }
+}
+
+/* Loading skeleton */
+@keyframes luna-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+.luna-skel { background: rgba(240, 192, 213, 0.45); border-radius: 20px; animation: luna-pulse 1.4s ease-in-out infinite; }
+
+/* Chips & tappable pills (44px-friendly on touch) */
+.luna-chip {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 40px; padding: 8px 14px; border-radius: 99px; cursor: pointer;
+  font-family: inherit; font-size: 14px; line-height: 1.2; text-align: center;
+  border: 1.5px solid var(--border); background: #fff; color: var(--text-2);
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.luna-chip.on { border-color: var(--accent); background: var(--accent-light); color: var(--accent); font-weight: 600; }
+
+/* Severity scale: ten tappable steps */
+.luna-sev { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; }
+.luna-sev button {
+  height: 44px; border-radius: 12px; border: 1.5px solid var(--border); background: #fff; cursor: pointer;
+  font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text-3);
+}
+
+/* Sticky action bar at the bottom of long forms: a frosted, full-bleed strip
+   that sits directly on top of the tab bar so nothing peeks through. */
+.luna-sticky-save {
+  position: sticky; bottom: calc(62px + env(safe-area-inset-bottom)); z-index: 5;
+  margin: 0 -16px; padding: 10px 16px 12px;
+  background: rgba(252, 236, 243, 0.94);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+}
+@media (min-width: 768px) {
+  .luna-sticky-save { bottom: 0; margin: 0 -24px; padding: 12px 24px 16px; }
+}
+
+/* Success check pop */
+@keyframes luna-pop-in { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+
+/* Visible keyboard focus (desktop / accessibility) */
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .luna-sheet, .luna-sheet-scrim, .luna-skel { animation: none; }
+}
+
+/* Icons inside buttons/links sit inline with their label (Tailwind's reset
+   makes svg block-level, which pushed icons onto their own line). */
+button > svg, a > svg { display: inline-block; vertical-align: middle; }
