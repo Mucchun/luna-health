@@ -21,8 +21,9 @@ const config: CapacitorConfig = {
   } : {}),
   plugins: {
     StatusBar: {
-      style: 'Dark',
-      backgroundColor: '#1A0810',
+      // 'Light' = dark text, for the app's light pink background.
+      style: 'Light',
+      backgroundColor: '#FDE8F0',
       overlaysWebView: false,
     },
     SplashScreen: {

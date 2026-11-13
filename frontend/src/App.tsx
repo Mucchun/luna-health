@@ -17,7 +17,7 @@ import Community from './pages/Community';
 import {
   LayoutDashboard, Pill, FlaskConical, TrendingUp,
   CalendarDays, Zap, FileText, Settings as SettingsIcon,
-  Plus, Leaf, MessageCircle, Sparkles, Flower2, Sun, Menu, X,
+  Plus, Leaf, MessageCircle, Sparkles, Flower2, Sun, LayoutGrid, X,
 } from 'lucide-react';
 import AiInsights from './pages/AiInsights';
 import ChatWidget from './components/ChatWidget';
@@ -27,20 +27,34 @@ import { DisclaimerGate, DISCLAIMER_ACCEPTED_KEY } from './lib/legal';
 import { tapLight } from './lib/haptics';
 import { useI18n, type StringKey } from './i18n';
 
-const NAV: { to: string; icon: any; key: StringKey }[] = [
-  { to: '/', icon: LayoutDashboard, key: 'nav.dashboard' },
-  { to: '/cycle', icon: CalendarDays, key: 'nav.cycle' },
-  { to: '/fertility', icon: Flower2, key: 'nav.fertility' },
-  { to: '/menopause', icon: Sun, key: 'nav.menopause' },
-  { to: '/patterns', icon: TrendingUp, key: 'nav.patterns' },
-  { to: '/triggers', icon: Zap, key: 'nav.triggers' },
-  { to: '/labs', icon: FlaskConical, key: 'nav.labs' },
-  { to: '/medications', icon: Pill, key: 'nav.medications' },
-  { to: '/wellness', icon: Leaf, key: 'nav.wellness' },
-  { to: '/ai', icon: Sparkles, key: 'nav.ai' },
-  { to: '/community', icon: MessageCircle, key: 'nav.community' },
-  { to: '/report', icon: FileText, key: 'nav.report' },
-  { to: '/settings', icon: SettingsIcon, key: 'nav.settings' },
+type NavItem = { to: string; icon: any; key: StringKey; tint: string };
+const item = (to: string, icon: any, key: StringKey, tint: string): NavItem => ({ to, icon, key, tint });
+
+const HOME = item('/', LayoutDashboard, 'nav.dashboard', '#C83F6E');
+
+// Destinations grouped by what the user is trying to do, so 13 screens read as
+// four short lists instead of one long one (sidebar on desktop, sheet on mobile).
+const NAV_GROUPS: { key: StringKey; items: NavItem[] }[] = [
+  { key: 'nav.groupTrack', items: [
+    item('/cycle', CalendarDays, 'nav.cycle', '#C83F6E'),
+    item('/triggers', Zap, 'nav.triggers', '#A85A20'),
+    item('/medications', Pill, 'nav.medications', '#2D7A56'),
+    item('/labs', FlaskConical, 'nav.labs', '#7B52B8'),
+  ] },
+  { key: 'nav.groupUnderstand', items: [
+    item('/patterns', TrendingUp, 'nav.patterns', '#7B52B8'),
+    item('/ai', Sparkles, 'nav.ai', '#C83F6E'),
+    item('/report', FileText, 'nav.report', '#2D7A56'),
+  ] },
+  { key: 'nav.groupCare', items: [
+    item('/fertility', Flower2, 'nav.fertility', '#C83F6E'),
+    item('/menopause', Sun, 'nav.menopause', '#A85A20'),
+    item('/wellness', Leaf, 'nav.wellness', '#2D7A56'),
+  ] },
+  { key: 'nav.groupYou', items: [
+    item('/community', MessageCircle, 'nav.community', '#7B52B8'),
+    item('/settings', SettingsIcon, 'nav.settings', '#6B3A4A'),
+  ] },
 ];
 
 // In the macOS desktop (Electron) build the window uses a hidden-inset title bar,
@@ -75,7 +89,7 @@ function Onboarding({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(28,10,18,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(28,10,18,0.6)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
       <div style={{ background: '#fff', borderRadius: 28, width: '100%', maxWidth: 440, padding: 32, boxShadow: '0 32px 80px rgba(0,0,0,0.15)' }}>
         {/* Steps indicator */}
         <div style={{ display: 'flex', gap: 6, marginBottom: 28 }}>
@@ -166,56 +180,51 @@ function Onboarding({ onDone }: { onDone: () => void }) {
   );
 }
 
+function Logo() {
+  return (
+    <div style={{ width: 30, height: 30, borderRadius: 10, background: 'var(--grad-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 14px rgba(200,63,110,0.45)' }}>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <circle cx="7" cy="7" r="5" stroke="white" strokeWidth="1.5" fill="none" opacity="0.5" />
+        <circle cx="7" cy="7" r="2.5" fill="white" />
+      </svg>
+    </div>
+  );
+}
+
 function Sidebar() {
   const { tr } = useI18n();
+  const link = ({ to, icon: Icon, key }: NavItem) => (
+    <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => 'luna-side-link' + (isActive ? ' active' : '')}>
+      <Icon size={16} strokeWidth={1.7} />
+      {tr(key)}
+    </NavLink>
+  );
   return (
-    <aside className="hidden md:flex flex-col flex-shrink-0 h-screen sticky top-0" style={{ width: 200, background: 'var(--grad-sidebar)', borderRight: '1px solid var(--sidebar-border)', boxShadow: '2px 0 24px rgba(28,10,18,0.14)', paddingTop: isElectron ? MAC_TITLEBAR : undefined }}>
-      {/* Logo */}
-      <div style={{ padding: '20px 16px 18px', borderBottom: '1px solid var(--sidebar-border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 10, background: 'var(--grad-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 14px rgba(200,63,110,0.45)' }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <circle cx="7" cy="7" r="5" stroke="white" strokeWidth="1.5" fill="none" opacity="0.5" />
-              <circle cx="7" cy="7" r="2.5" fill="white" />
-            </svg>
-          </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.3px' }}>Luna</div>
-            <div style={{ fontSize: 9, color: 'var(--sidebar-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: -1 }}>{tr('nav.hub')}</div>
-          </div>
+    <aside className="hidden md:flex flex-col flex-shrink-0 h-screen sticky top-0" style={{ width: 216, background: 'var(--grad-sidebar)', borderRight: '1px solid var(--sidebar-border)', boxShadow: '2px 0 24px rgba(28,10,18,0.14)', paddingTop: isElectron ? MAC_TITLEBAR : undefined }}>
+      <div style={{ padding: '20px 16px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Logo />
+        <div>
+          <div style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF', letterSpacing: '-0.3px' }}>Luna</div>
+          <div style={{ fontSize: 9, color: 'var(--sidebar-muted)', letterSpacing: '1px', textTransform: 'uppercase', marginTop: -1 }}>{tr('nav.hub')}</div>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
-        {NAV.map(({ to, icon: Icon, key }) => (
-          <NavLink key={to} to={to} end={to === '/'} style={({ isActive }) => ({
-            position: 'relative',
-            display: 'flex', alignItems: 'center', gap: 9,
-            padding: '8px 10px', borderRadius: 10,
-            fontSize: 13, fontWeight: isActive ? 600 : 400,
-            color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)',
-            background: isActive ? 'linear-gradient(90deg, rgba(200,63,110,0.26), rgba(123,82,184,0.12))' : 'transparent',
-            boxShadow: isActive ? 'inset 3px 0 0 0 #FFAEC8, 0 4px 14px rgba(200,63,110,0.14)' : 'none',
-            textDecoration: 'none', transition: 'all 0.16s',
-          })}>
-            {({ isActive }) => (
-              <>
-                <Icon size={15} strokeWidth={isActive ? 2 : 1.5} />
-                {tr(key)}
-              </>
-            )}
-          </NavLink>
-        ))}
-      </nav>
-
-      {/* CTA */}
-      <div style={{ padding: '12px 8px 16px', borderTop: '1px solid var(--sidebar-border)' }}>
-        <NavLink to="/log" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 12, textDecoration: 'none', background: 'var(--grad-accent)', color: '#fff', fontSize: 12, fontWeight: 700, letterSpacing: '0.1px', boxShadow: '0 6px 18px rgba(200,63,110,0.4)', transition: 'transform 0.12s, box-shadow 0.18s' }}>
-          <Plus size={13} strokeWidth={2.5} />
+      <div style={{ padding: '0 10px 10px' }}>
+        <NavLink to="/log" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '10px', borderRadius: 12, textDecoration: 'none', background: 'var(--grad-accent)', color: '#fff', fontSize: 13, fontWeight: 700, boxShadow: '0 6px 18px rgba(200,63,110,0.4)' }}>
+          <Plus size={14} strokeWidth={2.5} />
           {tr('nav.logSymptom')}
         </NavLink>
       </div>
+
+      <nav style={{ flex: 1, padding: '0 8px 16px', display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
+        {link(HOME)}
+        {NAV_GROUPS.map(g => (
+          <div key={g.key} style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <div className="luna-side-group">{tr(g.key)}</div>
+            {g.items.map(link)}
+          </div>
+        ))}
+      </nav>
     </aside>
   );
 }
@@ -223,59 +232,66 @@ function Sidebar() {
 function MobileBottom() {
   const [moreOpen, setMoreOpen] = useState(false);
   const { tr } = useI18n();
-  // Bottom bar shows the essentials; "More" opens the full navigation so every
-  // page (Labs, Settings, etc.) is reachable on iPhone.
-  const bar: { to: string; icon: any; key: StringKey }[] = [NAV[0], NAV[1], { to: '/log', icon: Plus, key: 'nav.log' }, NAV[9]]; // Dashboard, Cycle, Log, AI Insights
+  const { pathname } = useLocation();
+
+  // Close the sheet on navigation, and lock page scroll while it is open.
+  useEffect(() => { setMoreOpen(false); }, [pathname]);
+  useEffect(() => {
+    if (!moreOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [moreOpen]);
+
+  // "More" lights up when the current page lives inside the sheet.
+  const inSheet = NAV_GROUPS.some(g => g.items.some(i => i.to === pathname)) && pathname !== '/cycle' && pathname !== '/ai';
+  const tab = (to: string, Icon: any, label: string) => (
+    <NavLink to={to} end={to === '/'} className={({ isActive }) => 'luna-tab' + (isActive ? ' active' : '')}>
+      <Icon size={22} strokeWidth={1.7} />
+      <span>{label}</span>
+    </NavLink>
+  );
+
   return (
     <>
-      <nav style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30, background: 'var(--sidebar-bg)', borderTop: '1px solid var(--sidebar-border)', display: 'flex' }} className="md:hidden mobile-bottom-nav">
-        {bar.map(({ to, icon: Icon, key }) => (
-          <NavLink key={to} to={to} end={to === '/'} style={({ isActive }) => ({
-            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-            gap: 3, padding: '10px 0', textDecoration: 'none',
-            fontSize: 9, fontWeight: 500, letterSpacing: '0.3px', textTransform: 'uppercase',
-            color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)',
-          })}>
-            {({ isActive }) => (<><Icon size={18} strokeWidth={isActive ? 2 : 1.5} />{tr(key)}</>)}
-          </NavLink>
-        ))}
-        <button onClick={() => setMoreOpen(true)} style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-          padding: '10px 0', border: 'none', background: 'none', cursor: 'pointer',
-          fontSize: 9, fontWeight: 500, letterSpacing: '0.3px', textTransform: 'uppercase',
-          color: 'var(--sidebar-muted)', fontFamily: 'inherit',
-        }}>
-          <Menu size={18} strokeWidth={1.5} />
-          {tr('nav.more')}
+      <nav className="luna-tabbar">
+        {tab('/', LayoutDashboard, tr('nav.home'))}
+        {tab('/cycle', CalendarDays, tr('nav.cycle'))}
+        <NavLink to="/log" className="luna-tab-log" aria-label={tr('nav.logSymptom')}>
+          <div><Plus size={26} strokeWidth={2.4} /></div>
+        </NavLink>
+        {tab('/ai', Sparkles, tr('nav.insights'))}
+        <button onClick={() => setMoreOpen(true)} className={'luna-tab' + (inSheet || moreOpen ? ' active' : '')} aria-haspopup="dialog" aria-expanded={moreOpen}>
+          <LayoutGrid size={22} strokeWidth={1.7} />
+          <span>{tr('nav.more')}</span>
         </button>
       </nav>
 
-      {/* Full-nav drawer (mobile) */}
       {moreOpen && (
-        <div className="md:hidden" style={{ position: 'fixed', inset: 0, zIndex: 60 }}>
-          <div onClick={() => setMoreOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(28,10,18,0.5)', backdropFilter: 'blur(4px)', animation: 'luna-rise 0.2s' }} />
-          <div style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 260, maxWidth: '82vw', background: 'var(--grad-sidebar)', borderRight: '1px solid var(--sidebar-border)', boxShadow: '2px 0 30px rgba(0,0,0,0.35)', display: 'flex', flexDirection: 'column', animation: 'luna-slide-in 0.24s cubic-bezier(0.22,1,0.36,1)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 16px 14px', borderBottom: '1px solid var(--sidebar-border)' }}>
+        <div className="luna-sheet-root" role="dialog" aria-modal="true" aria-label={tr('nav.more')}>
+          <div className="luna-sheet-scrim" onClick={() => setMoreOpen(false)} />
+          <div className="luna-sheet">
+            <div className="luna-sheet-grabber" />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 10, background: 'var(--grad-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(200,63,110,0.45)' }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="white" strokeWidth="1.5" fill="none" opacity="0.5" /><circle cx="7" cy="7" r="2.5" fill="white" /></svg>
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', letterSpacing: '-0.3px' }}>Luna</div>
+                <Logo />
+                <div style={{ fontSize: 17, fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.3px' }}>Luna</div>
               </div>
-              <button onClick={() => setMoreOpen(false)} style={{ border: 'none', background: 'rgba(255,255,255,0.08)', borderRadius: 8, padding: '6px', cursor: 'pointer', color: 'var(--sidebar-text)', display: 'flex' }}><X size={15} /></button>
+              <button onClick={() => setMoreOpen(false)} aria-label={tr('common.close')} style={{ border: 'none', background: 'var(--bg-2)', borderRadius: 99, width: 36, height: 36, cursor: 'pointer', color: 'var(--text-2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><X size={17} /></button>
             </div>
-            <nav style={{ flex: 1, padding: '8px', display: 'flex', flexDirection: 'column', gap: 1, overflowY: 'auto' }}>
-              {NAV.map(({ to, icon: Icon, key }) => (
-                <NavLink key={to} to={to} end={to === '/'} onClick={() => setMoreOpen(false)} style={({ isActive }) => ({
-                  display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', borderRadius: 10,
-                  fontSize: 14, fontWeight: isActive ? 600 : 400, textDecoration: 'none',
-                  color: isActive ? 'var(--sidebar-active-text)' : 'var(--sidebar-muted)',
-                  background: isActive ? 'linear-gradient(90deg, rgba(200,63,110,0.26), rgba(123,82,184,0.12))' : 'transparent',
-                })}>
-                  {({ isActive }) => (<><Icon size={17} strokeWidth={isActive ? 2 : 1.5} />{tr(key)}</>)}
-                </NavLink>
-              ))}
-            </nav>
+            {NAV_GROUPS.map(g => (
+              <div key={g.key}>
+                <div className="luna-sheet-group">{tr(g.key)}</div>
+                <div className="luna-sheet-grid">
+                  {g.items.map(({ to, icon: Icon, key, tint }) => (
+                    <NavLink key={to} to={to} onClick={() => setMoreOpen(false)} className={({ isActive }) => 'luna-sheet-tile' + (isActive ? ' active' : '')}>
+                      <i style={{ background: tint + '16', color: tint }}><Icon size={20} strokeWidth={1.8} /></i>
+                      {tr(key)}
+                    </NavLink>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -285,8 +301,11 @@ function MobileBottom() {
 
 function AnimatedMain() {
   const location = useLocation();
+  // Each screen starts at the top (the browser would otherwise keep the previous
+  // page's scroll offset).
+  useEffect(() => { window.scrollTo(0, 0); }, [location.pathname]);
   return (
-    <main style={{ flex: 1, minWidth: 0, paddingBottom: 72 }} className="md:pb-0 luna-main">
+    <main style={{ flex: 1, minWidth: 0 }} className="luna-main">
       <div key={location.pathname} className="luna-page">
         <Routes location={location}>
           <Route path="/" element={<Dashboard />} />
@@ -315,8 +334,9 @@ export default function App() {
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
-      StatusBar.setStyle({ style: Style.Dark });
-      StatusBar.setBackgroundColor({ color: '#1A0810' });
+      // Style.Light = dark status-bar text, which is what a light pink app needs.
+      StatusBar.setStyle({ style: Style.Light }).catch(() => {});
+      StatusBar.setBackgroundColor({ color: '#FDE8F0' }).catch(() => {});
       SplashScreen.hide({ fadeOutDuration: 300 });
     }
   }, []);

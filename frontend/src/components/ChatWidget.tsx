@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { X, Send } from 'lucide-react';
 
 interface Msg { role: 'user' | 'assistant'; content: string; }
@@ -89,6 +90,8 @@ import { useI18n } from '../i18n';
 export default function ChatWidget() {
   const { tr } = useI18n();
   const [open, setOpen]       = useState(false);
+  // Stay out of the way while the user is filling in the log form.
+  const hideLauncher = useLocation().pathname === '/log' && !open;
   const [msgs, setMsgs]       = useState<Msg[]>([]);
   const [input, setInput]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -182,10 +185,10 @@ export default function ChatWidget() {
         }
 
         /* Positions */
-        .luna-btn   { bottom: 82px; right: 16px; }
-        .luna-panel { bottom: 156px; right: 16px; }
+        .luna-btn   { bottom: calc(80px + env(safe-area-inset-bottom)); right: 10px; scale: 0.78; transform-origin: bottom right; }
+        .luna-panel { bottom: calc(150px + env(safe-area-inset-bottom)); right: 16px; }
         @media(min-width:768px){
-          .luna-btn   { bottom: 20px; right: 24px; }
+          .luna-btn   { bottom: 20px; right: 24px; scale: 1; }
           .luna-panel { bottom: 100px; right: 24px; }
         }
       `}</style>
@@ -297,7 +300,7 @@ export default function ChatWidget() {
       )}
 
       {/* ── Floating character button ── */}
-      <button
+      {!hideLauncher && <button
         className="luna-btn"
         onClick={() => setOpen(o => !o)}
         aria-label={open ? 'Close Luna chat' : 'Chat with Luna AI'}
@@ -334,7 +337,7 @@ export default function ChatWidget() {
             background: 'var(--accent)', border: '2px solid white',
           }} />
         )}
-      </button>
+      </button>}
     </>
   );
 }

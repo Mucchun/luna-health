@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localISO } from '../lib/date';
 import { Plus, X, TrendingUp, TrendingDown, Minus, Sparkles, RefreshCw, ChevronRight } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { Citations } from '../lib/references';
@@ -27,14 +28,14 @@ function rangeStatus(m: typeof MARKERS[0], v: number) {
   return 'normal';
 }
 
-const inp: React.CSSProperties = { width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--text)', background: '#fff' };
-const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' };
+const inp: React.CSSProperties = { width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 14, color: 'var(--text)', background: '#fff' };
+const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' };
 const card: React.CSSProperties = { background: '#fff', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' };
 
 const TT = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px', fontSize: 12, boxShadow: '0 4px 16px rgba(200,63,110,0.08)' }}>
+    <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 12px', fontSize: 13, boxShadow: '0 4px 16px rgba(200,63,110,0.08)' }}>
       <p style={{ color: 'var(--text-3)', marginBottom: 2 }}>{label}</p>
       <p style={{ fontWeight: 700, color: 'var(--accent)' }}>{payload[0].value}</p>
     </div>
@@ -57,7 +58,7 @@ export default function Labs() {
   const { tr } = useI18n();
   const [labs, setLabs] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ date: new Date().toISOString().split('T')[0], marker: '', value: '', unit: '', lab: '', notes: '' });
+  const [form, setForm] = useState({ date: localISO(), marker: '', value: '', unit: '', lab: '', notes: '' });
   const [chartMarker, setChartMarker] = useState<string | null>(null);
   const [aiResult, setAiResult]   = useState<any>(null);
   const [aiLoading, setAiLoading] = useState(false);
@@ -108,12 +109,12 @@ export default function Labs() {
 
   return (
     <div style={{ maxWidth: 760, padding: '28px 24px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div className="luna-head" style={{ marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.labValues')}</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('labs.subtitle')}</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.labValues')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{tr('labs.subtitle')}</p>
         </div>
-        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={13} /> Add Result
         </button>
       </div>
@@ -126,14 +127,14 @@ export default function Labs() {
               <Sparkles size={13} style={{ color: 'var(--accent)' }} />
             </div>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{tr('labs.aiAnalysis')}</p>
-              {aiResult && <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 1 }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{tr('labs.aiAnalysis')}</p>
+              {aiResult && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>
                 {new Date(aiResult.generated_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </p>}
             </div>
           </div>
           <button onClick={analyzeWithAi} disabled={aiLoading || labs.length === 0}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 99, border: 'none', background: aiLoading || labs.length === 0 ? 'var(--border)' : 'var(--accent)', color: aiLoading || labs.length === 0 ? 'var(--text-3)' : '#fff', fontSize: 12, fontWeight: 600, cursor: aiLoading || labs.length === 0 ? 'not-allowed' : 'pointer', transition: 'all 0.1s' }}>
+            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 99, border: 'none', background: aiLoading || labs.length === 0 ? 'var(--border)' : 'var(--accent)', color: aiLoading || labs.length === 0 ? 'var(--text-3)' : '#fff', fontSize: 13, fontWeight: 600, cursor: aiLoading || labs.length === 0 ? 'not-allowed' : 'pointer', transition: 'all 0.1s' }}>
             {aiLoading
               ? <><RefreshCw size={11} style={{ animation: 'spin 1s linear infinite' }} /> Analysing…</>
               : <><Sparkles size={11} /> {aiResult ? 'Re-analyse' : 'Analyse results'}</>}
@@ -142,7 +143,7 @@ export default function Labs() {
         </div>
 
         {aiError && (
-          <div style={{ padding: '12px 20px', fontSize: 13, color: 'var(--amber)' }}>{aiError}</div>
+          <div style={{ padding: '12px 20px', fontSize: 14, color: 'var(--amber)' }}>{aiError}</div>
         )}
 
         {aiResult && !aiLoading && (() => {
@@ -150,19 +151,19 @@ export default function Labs() {
           return (
             <div style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Summary */}
-              <p style={{ fontSize: 13, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.summary}</p>
+              <p style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.65 }}>{a.summary}</p>
 
               {/* Marker chips */}
               {a.markers?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.markerStatus')}</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.markerStatus')}</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
                     {a.markers.map((m: any) => {
                       const st = STATUS_STYLE[m.status] || STATUS_STYLE.unknown;
                       const TIcon = TREND_ICON[m.trend] || Minus;
                       return (
                         <div key={m.name} title={m.observation}
-                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 99, background: st.bg, fontSize: 11, fontWeight: 600, color: st.color, cursor: 'default' }}>
+                          style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 10px', borderRadius: 99, background: st.bg, fontSize: 12, fontWeight: 600, color: st.color, cursor: 'default' }}>
                           <TIcon size={10} />
                           {m.name.split('(')[0].trim()} · {st.label}
                         </div>
@@ -179,10 +180,10 @@ export default function Labs() {
                     const st = STATUS_STYLE[m.status] || STATUS_STYLE.unknown;
                     return (
                       <div key={m.name} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 12px', background: st.bg + '55', borderRadius: 10, border: `1px solid ${st.bg}` }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: st.color, flexShrink: 0, paddingTop: 1, minWidth: 36 }}>{m.latest_value} {m.unit}</div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: st.color, flexShrink: 0, paddingTop: 1, minWidth: 36 }}>{m.latest_value} {m.unit}</div>
                         <div>
-                          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)' }}>{m.name}</p>
-                          <p style={{ fontSize: 11, color: 'var(--text-2)', marginTop: 2, lineHeight: 1.5 }}>{m.observation}</p>
+                          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>{m.name}</p>
+                          <p style={{ fontSize: 12, color: 'var(--text-2)', marginTop: 2, lineHeight: 1.5 }}>{m.observation}</p>
                         </div>
                       </div>
                     );
@@ -193,12 +194,12 @@ export default function Labs() {
               {/* Key findings */}
               {a.key_findings?.length > 0 && (
                 <div>
-                  <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.keyFindings')}</p>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.keyFindings')}</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     {a.key_findings.map((f: string, i: number) => (
                       <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                         <ChevronRight size={13} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} />
-                        <p style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.55 }}>{f}</p>
+                        <p style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.55 }}>{f}</p>
                       </div>
                     ))}
                   </div>
@@ -209,27 +210,27 @@ export default function Labs() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                 {a.doctor_questions?.length > 0 && (
                   <div style={{ background: '#DBEAFE22', border: '1px solid #DBEAFE', borderRadius: 12, padding: '12px 14px' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.askDoctor')}</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.askDoctor')}</p>
                     <ol style={{ paddingLeft: 16, margin: 0, display: 'flex', flexDirection: 'column', gap: 5 }}>
                       {a.doctor_questions.map((q: string, i: number) => (
-                        <li key={i} style={{ fontSize: 11, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
+                        <li key={i} style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.5 }}>{q}</li>
                       ))}
                     </ol>
                   </div>
                 )}
                 {a.follow_up_tests?.length > 0 && (
                   <div style={{ background: 'var(--purple-light)', border: '1px solid #DDD6FE', borderRadius: 12, padding: '12px 14px' }}>
-                    <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.considerTesting')}</p>
+                    <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--purple)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 8 }}>{tr('labs.considerTesting')}</p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
                       {a.follow_up_tests.map((t: string, i: number) => (
-                        <span key={i} style={{ fontSize: 11, fontWeight: 600, padding: '3px 9px', borderRadius: 99, background: 'white', color: 'var(--purple)' }}>{t}</span>
+                        <span key={i} style={{ fontSize: 12, fontWeight: 600, padding: '3px 9px', borderRadius: 99, background: 'white', color: 'var(--purple)' }}>{t}</span>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
 
-              <p style={{ fontSize: 10, color: 'var(--text-3)', lineHeight: 1.5, fontStyle: 'italic' }}>
+              <p style={{ fontSize: 11, color: 'var(--text-3)', lineHeight: 1.5, fontStyle: 'italic' }}>
                 AI analysis is for informational purposes only. Always discuss your lab results with a qualified healthcare provider.
               </p>
             </div>
@@ -242,17 +243,17 @@ export default function Labs() {
         <div style={{ ...card, padding: '20px 22px', marginBottom: 14 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
             <div>
-              <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{chartMarker}</p>
-              {markerDef && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>Normal: {markerDef.min}–{markerDef.max} {markerDef.unit}</p>}
+              <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{chartMarker}</p>
+              {markerDef && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>Normal: {markerDef.min}–{markerDef.max} {markerDef.unit}</p>}
             </div>
-            <button onClick={() => setChartMarker(null)} style={{ fontSize: 11, color: 'var(--text-3)', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, background: 'var(--border)' }}>
+            <button onClick={() => setChartMarker(null)} style={{ fontSize: 12, color: 'var(--text-3)', border: 'none', cursor: 'pointer', padding: '4px 8px', borderRadius: 6, background: 'var(--border)' }}>
               Close
             </button>
           </div>
           <ResponsiveContainer width="100%" height={140} style={{ marginTop: 12 }}>
             <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -28 }}>
-              <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
-              <YAxis tick={{ fontSize: 10, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: 'var(--text-3)' }} tickLine={false} axisLine={false} />
               <Tooltip content={<TT />} />
               {markerDef && <ReferenceLine y={markerDef.min} stroke="#F4B8CC" strokeDasharray="3 3" />}
               {markerDef && <ReferenceLine y={markerDef.max} stroke="#F4B8CC" strokeDasharray="3 3" />}
@@ -265,7 +266,7 @@ export default function Labs() {
       {/* Latest results grid */}
       {Object.keys(latest).length > 0 && (
         <div style={{ marginBottom: 14 }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>{tr('labs.latestResults')}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>{tr('labs.latestResults')}</p>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
             {Object.values(latest).map((l: any) => {
               const def = MARKERS.find(m => m.name === l.marker);
@@ -274,13 +275,13 @@ export default function Labs() {
                 <div key={l.marker} onClick={() => setChartMarker(l.marker === chartMarker ? null : l.marker)}
                   style={{ background: '#fff', border: `1.5px solid ${l.marker === chartMarker ? 'var(--accent)' : 'var(--border)'}`, borderRadius: 16, padding: '14px 16px', cursor: 'pointer', transition: 'border-color 0.1s' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--text-2)', flex: 1, lineHeight: 1.3 }}>{l.marker}</p>
+                    <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-2)', flex: 1, lineHeight: 1.3 }}>{l.marker}</p>
                     <StatusIcon s={s} />
                   </div>
                   <p style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.8px', lineHeight: 1, marginTop: 8, ...statusStyle(s) }}>
                     {l.value}
                   </p>
-                  <p style={{ fontSize: 10, color: 'var(--text-3)', marginTop: 3 }}>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 3 }}>
                     {l.unit}{def ? ` · ref ${def.min}–${def.max}` : ''}
                   </p>
                 </div>
@@ -293,18 +294,18 @@ export default function Labs() {
       {/* All records */}
       <div style={card}>
         <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('labs.allRecords')}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('labs.allRecords')}</p>
         </div>
         <div style={{ padding: '0 22px' }}>
           {labs.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '28px 0' }}>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', padding: '28px 0' }}>
               No lab results yet. Add blood test results to track trends over time.
             </p>
           ) : labs.map((l, i) => (
             <div key={l.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: i < labs.length - 1 ? '1px solid var(--border)' : 'none' }} className="group">
               <div>
-                <p style={{ fontSize: 13, color: 'var(--text)', fontWeight: 500 }}>{l.marker}: <strong>{l.value} {l.unit}</strong></p>
-                <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 2 }}>
+                <p style={{ fontSize: 14, color: 'var(--text)', fontWeight: 500 }}>{l.marker}: <strong>{l.value} {l.unit}</strong></p>
+                <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 2 }}>
                   {new Date(l.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   {l.lab && ` · ${l.lab}`}
                 </p>
@@ -336,7 +337,7 @@ export default function Labs() {
                   {MARKERS.map(m => <option key={m.name} value={m.name}>{m.name} ({m.unit}) — {m.cond}</option>)}
                   <option value="__custom">{tr('labs.otherCustom')}</option>
                 </select>
-                {selDef && <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.5 }}>ℹ {selDef.note}</p>}
+                {selDef && <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 6, lineHeight: 1.5 }}>ℹ {selDef.note}</p>}
               </div>
               {form.marker === '__custom' && (
                 <div><label style={lbl}>Marker name</label><input type="text" placeholder={tr('labs.markerNamePlaceholder')} onChange={e => setForm(f => ({ ...f, marker: e.target.value }))} style={inp} /></div>
@@ -346,7 +347,7 @@ export default function Labs() {
                 <div><label style={lbl}>Unit</label><input type="text" required value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))} placeholder="ng/dL, U/mL…" style={inp} /></div>
               </div>
               <div><label style={lbl}>Lab / clinic <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label><input type="text" value={form.lab} onChange={e => setForm(f => ({ ...f, lab: e.target.value }))} placeholder={tr('labs.labClinicPlaceholder')} style={inp} /></div>
-              <button type="submit" disabled={!form.marker || !form.value || !form.unit} style={{ padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: (!form.marker || !form.value || !form.unit) ? 0.4 : 1, marginTop: 4 }}>
+              <button type="submit" disabled={!form.marker || !form.value || !form.unit} style={{ padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 700, opacity: (!form.marker || !form.value || !form.unit) ? 0.4 : 1, marginTop: 4 }}>
                 {tr('labs.saveResult')}
               </button>
             </form>

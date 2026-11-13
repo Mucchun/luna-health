@@ -13,6 +13,7 @@ import * as store from './store';
 import { nowStamp } from './store';
 import * as insights from './insights';
 import { screenText } from './moderation';
+import { localISO, addDays, daysBetween } from './date';
 
 type Json = any;
 interface Result { status: number; data: Json }
@@ -21,13 +22,9 @@ const ok = (data: Json): Result => ({ status: 200, data });
 const err = (status: number, error: string): Result => ({ status, data: { error } });
 
 // ── date helpers (dates are stored as 'YYYY-MM-DD', which sort chronologically) ─
-const today = () => new Date().toISOString().slice(0, 10);
-function daysAgo(n: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
-}
-const dayDiff = (a: string, b: string) => Math.round((new Date(b).getTime() - new Date(a).getTime()) / 86400000);
+const today = () => localISO();
+const daysAgo = (n: number): string => addDays(localISO(), -n);
+const dayDiff = (a: string, b: string) => daysBetween(a, b);
 
 // Default profile — mirrors the old db.js seed (blank triggers onboarding).
 async function getProfile() {
@@ -175,15 +172,20 @@ export async function handleLocal(method: string, rawPath: string, body: Json): 
     if (cycles.length < 2) return ok({ predictions: [], message: 'Need at least 2 logged cycles for predictions' });
     const symptoms: any[] = await store.all('symptoms');
 
+    // A cycle runs from its start date up to the day before the next logged
+    // start (the latest one is still in progress, so it runs to today). Count,
+    // per cycle day, how many cycles had a high-severity symptom on that day.
     const seen = new Set<string>();
     const dayCounts: Record<number, number> = {};
     for (const s of symptoms) {
       if (s.severity < 6) continue;
-      for (const c of cycles) {
-        if (s.date >= c.start_date && (!c.end_date || s.date <= c.end_date)) {
-          const cycleDay = Math.floor(dayDiff(c.start_date, s.date));
-          if (cycleDay < 0 || cycleDay > 35) continue;
-          const key = `${s.date}|${c.id}`;
+      for (let i = 0; i < cycles.length; i++) {
+        const c = cycles[i];
+        const nextStart = i > 0 ? cycles[i - 1].start_date : addDays(today(), 1);
+        if (s.date >= c.start_date && s.date < nextStart) {
+          const cycleDay = dayDiff(c.start_date, s.date);
+          if (cycleDay > 45) continue;
+          const key = `${cycleDay}|${c.id}`;
           if (seen.has(key)) continue;
           seen.add(key);
           dayCounts[cycleDay] = (dayCounts[cycleDay] || 0) + 1;
@@ -193,16 +195,23 @@ export async function handleLocal(method: string, rawPath: string, body: Json): 
     const totalCycles = cycles.length;
     const flareDays = Object.entries(dayCounts).filter(([, c]) => (c as number) / totalCycles >= 0.4).map(([d]) => +d);
 
+    // Next period = last period START + usual cycle length (same rule the
+    // Cycle Tracker calendar uses, so the two screens always agree).
     const lastCycle = cycles[0];
-    const nextCycleStart = lastCycle.end_date ? new Date(lastCycle.end_date) : new Date(lastCycle.start_date);
-    if (!lastCycle.end_date) nextCycleStart.setDate(nextCycleStart.getDate() + (profile.cycle_length || 28));
+    const cycleLen = profile.cycle_length || 28;
+    const nextCycleStart = addDays(lastCycle.start_date, cycleLen);
 
-    const predictions = flareDays.map(day => {
-      const d = new Date(nextCycleStart); d.setDate(d.getDate() + day);
-      return { date: d.toISOString().slice(0, 10), cycle_day: day, confidence: Math.min(Math.round((dayCounts[day] / totalCycles) * 100), 95) };
-    }).filter(p => p.date >= today()).slice(0, 7);
+    // Upcoming flare days: the rest of the current cycle, then the next one.
+    const predictions = [lastCycle.start_date, nextCycleStart]
+      .flatMap(start => flareDays.filter(day => day < cycleLen).map(day => ({
+        date: addDays(start, day), cycle_day: day,
+        confidence: Math.min(Math.round((dayCounts[day] / totalCycles) * 100), 95),
+      })))
+      .filter(p => p.date >= today())
+      .sort((x, y) => x.date.localeCompare(y.date))
+      .slice(0, 7);
 
-    return ok({ predictions, next_cycle_start: nextCycleStart.toISOString().slice(0, 10) });
+    return ok({ predictions, next_cycle_start: nextCycleStart });
   }
 
   // ── Doctor report ────────────────────────────────────────────────────────────

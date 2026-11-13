@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { localISO } from '../lib/date';
 import { Plus, X, Check } from 'lucide-react';
 
 const MED_TYPES = ['Prescription', 'OTC medication', 'Supplement', 'Hormonal contraceptive', 'GLP-1 / metabolic', 'Other'];
@@ -13,13 +14,13 @@ const TYPE_BADGE: Record<string, [string, string]> = {
   'Other':                  ['#6B5A5F', '#F5F0F2'],
 };
 
-const inp: React.CSSProperties = { width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 13, color: 'var(--text)', background: '#fff' };
-const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' };
+const inp: React.CSSProperties = { width: '100%', border: '1px solid var(--border)', borderRadius: 12, padding: '10px 14px', fontSize: 14, color: 'var(--text)', background: '#fff' };
+const lbl: React.CSSProperties = { fontSize: 12, fontWeight: 600, color: 'var(--text-3)', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' };
 
 function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button type="button" onClick={onClick} style={{
-      padding: '6px 12px', borderRadius: 99, fontSize: 12, fontWeight: active ? 500 : 400, cursor: 'pointer',
+      padding: '6px 12px', borderRadius: 99, fontSize: 13, fontWeight: active ? 500 : 400, cursor: 'pointer',
       border: `1.5px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
       background: active ? 'var(--accent-light)' : '#fff',
       color: active ? 'var(--accent)' : 'var(--text-2)', transition: 'all 0.1s',
@@ -34,7 +35,7 @@ export default function Medications() {
   const [meds, setMeds] = useState<any[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', type: '', dose: '', frequency: '', start_date: '', notes: '' });
-  const [logDate] = useState(new Date().toISOString().split('T')[0]);
+  const [logDate] = useState(localISO());
   const [loggedIds, setLoggedIds] = useState<Set<number>>(new Set());
 
   useEffect(() => { fetch('/api/medications').then(r => r.json()).then(setMeds); }, []);
@@ -62,12 +63,12 @@ export default function Medications() {
 
   return (
     <div style={{ maxWidth: 620, padding: '28px 24px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
+      <div className="luna-head" style={{ marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.medications')}</h1>
-          <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>{tr('meds.subtitle')}</p>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.5px' }}>{tr('page.medications')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text-3)', marginTop: 4 }}>{tr('meds.subtitle')}</p>
         </div>
-        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+        <button onClick={() => setShowForm(true)} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 99, border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
           <Plus size={13} /> Add
         </button>
       </div>
@@ -76,8 +77,8 @@ export default function Medications() {
       {active.length > 0 && (
         <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden', marginBottom: 14 }}>
           <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('meds.checkin')}</p>
-            <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>{tr('meds.checkin')}</p>
+            <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
           </div>
           <div style={{ padding: '0 22px' }}>
             {active.map((m, i) => {
@@ -85,19 +86,19 @@ export default function Medications() {
               return (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: i < active.length - 1 ? '1px solid var(--border)' : 'none', gap: 12 }}>
                   <div style={{ flex: 1 }}>
-                    <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--text)' }}>{m.name}</p>
-                    <p style={{ fontSize: 11, color: 'var(--text-3)', marginTop: 1 }}>{[m.dose, m.frequency].filter(Boolean).join(' · ')}</p>
+                    <p style={{ fontSize: 14, fontWeight: 500, color: 'var(--text)' }}>{m.name}</p>
+                    <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 1 }}>{[m.dose, m.frequency].filter(Boolean).join(' · ')}</p>
                   </div>
                   {logged ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--sage)', fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--sage)', fontWeight: 500 }}>
                       <Check size={13} /> Logged
                     </div>
                   ) : (
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button onClick={() => handleLog(m.id, true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, border: '1.5px solid #A0DBC0', background: 'var(--sage-light)', color: 'var(--sage)', fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                      <button onClick={() => handleLog(m.id, true)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '5px 12px', borderRadius: 99, border: '1.5px solid #A0DBC0', background: 'var(--sage-light)', color: 'var(--sage)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
                         <Check size={11} /> Taken
                       </button>
-                      <button onClick={() => handleLog(m.id, false)} style={{ padding: '5px 12px', borderRadius: 99, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-3)', fontSize: 11, cursor: 'pointer' }}>
+                      <button onClick={() => handleLog(m.id, false)} style={{ padding: '5px 12px', borderRadius: 99, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-3)', fontSize: 12, cursor: 'pointer' }}>
                         Skip
                       </button>
                     </div>
@@ -112,11 +113,11 @@ export default function Medications() {
       {/* Active list */}
       <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden', marginBottom: 14 }}>
         <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)' }}>
-          <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Active · {active.length}</p>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Active · {active.length}</p>
         </div>
         <div style={{ padding: '0 22px' }}>
           {active.length === 0 ? (
-            <p style={{ fontSize: 13, color: 'var(--text-3)', textAlign: 'center', padding: '24px 0' }}>{tr('meds.noActive')}</p>
+            <p style={{ fontSize: 14, color: 'var(--text-3)', textAlign: 'center', padding: '24px 0' }}>{tr('meds.noActive')}</p>
           ) : active.map((m, i) => {
             const [color, bg] = TYPE_BADGE[m.type] || TYPE_BADGE.Other;
             return (
@@ -124,14 +125,14 @@ export default function Medications() {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                     <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{m.name}</p>
-                    <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: bg, color, letterSpacing: '0.2px' }}>{m.type}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 99, background: bg, color, letterSpacing: '0.2px' }}>{m.type}</span>
                   </div>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)' }}>
                     {[m.dose, m.frequency, m.start_date && `Since ${new Date(m.start_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`].filter(Boolean).join(' · ')}
                   </p>
-                  {m.notes && <p style={{ fontSize: 11, color: 'var(--text-3)', fontStyle: 'italic', marginTop: 3 }}>{m.notes}</p>}
+                  {m.notes && <p style={{ fontSize: 12, color: 'var(--text-3)', fontStyle: 'italic', marginTop: 3 }}>{m.notes}</p>}
                 </div>
-                <button onClick={() => handleToggle(m.id, true)} style={{ fontSize: 11, color: 'var(--text-3)', border: 'none', background: 'none', cursor: 'pointer', flexShrink: 0, paddingTop: 2 }}>
+                <button onClick={() => handleToggle(m.id, true)} style={{ fontSize: 12, color: 'var(--text-3)', border: 'none', background: 'none', cursor: 'pointer', flexShrink: 0, paddingTop: 2 }}>
                   Discontinue
                 </button>
               </div>
@@ -144,16 +145,16 @@ export default function Medications() {
       {inactive.length > 0 && (
         <div style={{ background: '#fff', border: '1px solid var(--border)', borderRadius: 22, overflow: 'hidden' }}>
           <div style={{ padding: '16px 22px', borderBottom: '1px solid var(--border)' }}>
-            <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.6 }}>Discontinued · {inactive.length}</p>
+            <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.6 }}>Discontinued · {inactive.length}</p>
           </div>
           <div style={{ padding: '0 22px' }}>
             {inactive.map((m, i) => (
               <div key={m.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 0', borderBottom: i < inactive.length - 1 ? '1px solid var(--border)' : 'none', opacity: 0.5 }}>
                 <div>
-                  <p style={{ fontSize: 13, textDecoration: 'line-through', color: 'var(--text-2)' }}>{m.name}</p>
-                  <p style={{ fontSize: 11, color: 'var(--text-3)' }}>{m.type}</p>
+                  <p style={{ fontSize: 14, textDecoration: 'line-through', color: 'var(--text-2)' }}>{m.name}</p>
+                  <p style={{ fontSize: 12, color: 'var(--text-3)' }}>{m.type}</p>
                 </div>
-                <button onClick={() => handleToggle(m.id, false)} style={{ fontSize: 11, color: 'var(--accent)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 500 }}>
+                <button onClick={() => handleToggle(m.id, false)} style={{ fontSize: 12, color: 'var(--accent)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 500 }}>
                   Reactivate
                 </button>
               </div>
@@ -193,7 +194,7 @@ export default function Medications() {
               </div>
               <div><label style={lbl}>{tr('meds.startDate')}</label><input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} style={inp} /></div>
               <div><label style={lbl}>{tr('log.notes')} <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>({tr('common.optional')})</span></label><input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder={tr('meds.notesPlaceholder')} style={inp} /></div>
-              <button type="submit" disabled={!form.name || !form.type} style={{ padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 13, fontWeight: 700, opacity: (!form.name || !form.type) ? 0.4 : 1, marginTop: 4 }}>
+              <button type="submit" disabled={!form.name || !form.type} style={{ padding: '12px', borderRadius: 14, border: 'none', cursor: 'pointer', background: 'var(--accent)', color: '#fff', fontSize: 14, fontWeight: 700, opacity: (!form.name || !form.type) ? 0.4 : 1, marginTop: 4 }}>
                 Save
               </button>
             </form>
